@@ -1,43 +1,22 @@
 import * as functions from "firebase-functions";
-import { initializeApp } from 'firebase-admin';
-import {getAuth} from 'firebase-admin/auth';
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
+import { getAuth } from "firebase-admin/auth";
+import { initializeApp } from "firebase-admin";
 
-const app = initializeApp();
+import { TRole } from "./types";
 
-let defaultAuth = getAuth(app);
-export const helloWorld = functions.firestore.document('roles/{docId}').onCreate((snapshot, context) => {
-    const {docId} =  context.params;
-    const data = snapshot.data()  
-    const user = defaultAuth.getUserByEmail(data.email)
-    if(user.exist){
-        switch (data.role) {
-            case 'manager':
-                user.setCustomeclaim({isManager:true})
-                break;
-            case 'shipping':
-                user.setCustomeclaim({isShipping:true})
-                break;
-        
-            default:
-                break;
-        }
+initializeApp();
+
+exports.assignRole = functions.firestore
+  .document("roles/{docId}")
+  .onCreate(async (snapshot, context) => {
+    const data = snapshot.data() as TRole;
+    try {
+      const user = await getAuth().getUserByEmail(data.email);
+      console.log(user);
+      if (user) {
+        getAuth().setCustomUserClaims(user.uid, { role: data.role });
+      }
+    } catch (error) {
+      console.error(error);
     }
-    
-});
-
-export const setUserRoleViaAuth = function.auth.onCreate((user)=>{
-    const user = defaultAuth.getUserByEmail(data.email)
-    admin.firestore.collection('roles').where('email','==',user.email)
-    .get()
-    .then(snap=>{
-        if(!snap.empty){
-            snap.forEach(doc=>{
-                const data = doc.data();
-                user.setCustomeclaim()
-            })
-        }
-    })
-})
+  });
