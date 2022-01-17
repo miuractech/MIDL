@@ -6,8 +6,8 @@ import { useYupValidationResolver } from './yupValidator';
 const validationSchema = yup.object({
     name: yup.string().min(4,"Minimum length of Name is 4").max(500,"Maximum length of Name is 500").required('Required'),
     age: yup.number().min(1,"Minimum length of Age is 1").max(150,"Maximum length of age is 150").typeError('Age must be a number').required('Required'),
-   
-  });
+    email:yup.string().email().required('Email must be a valid email address')
+});
   
 
 export default function Index() {
