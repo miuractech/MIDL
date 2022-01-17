@@ -1,26 +1,18 @@
 import {
-  collection,
   doc,
   getDoc,
-  getDocs,
-  Query,
-  query,
   serverTimestamp,
   setDoc,
   Timestamp,
   updateDoc,
 } from "firebase/firestore";
 import React from "react";
-import {
-  BehaviorSubject,
-  combineLatestWith,
-  from,
-  map,
-  Observable,
-} from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 import { v4 as uuidv4 } from "uuid";
 
 import { firestore } from "../../config/firebase.config";
+import { useStartupData } from "../../global/hooks";
+import { edited$, fetchedRoles$, rolesCached$ } from "../../store/auth";
 import useAuth from "./auth.hooks";
 import Button from "./blue.button";
 import { getRolesDocs } from "./features";
@@ -28,28 +20,10 @@ import StaffForm from "./staff.form";
 import { IRolesDoc } from "./types";
 
 const showStaffForm$ = new BehaviorSubject(false);
-const showStaffEditForm$ = new BehaviorSubject(false);
-const roles$ = from(getRolesDocs("roles"));
-const edited$ = new BehaviorSubject<IRolesDoc | null>(null);
-const rolesCached$ = edited$.pipe(
-  combineLatestWith(roles$),
-  map(([edited, val]) => {
-    if (edited !== null && val !== undefined) {
-      if (val.length === 0) {
-        val.push(edited);
-      } else {
-        const index = val.findIndex((role) => role.id === edited.id);
-        if (index !== -1) {
-          val[index] = edited;
-        }
-      }
-    }
-    return val;
-  })
-);
 
 const Signed: React.FC = () => {
   useSubject(showStaffForm$);
+
   return (
     <React.Fragment>
       {showStaffForm$.value ? (
@@ -62,11 +36,19 @@ const Signed: React.FC = () => {
               await setDoc(doc(firestore, `/roles/${id}`), {
                 id: id,
                 email: email,
-                option: option,
+                role: option,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 disabled: false,
               });
+            } catch (error) {
+              console.error(error);
+            }
+            try {
+              const docRef = doc(firestore, "roles", id);
+              const res = await getDoc(docRef);
+              const data = res.data() as IRolesDoc;
+              edited$.next(data);
             } catch (error) {
               console.error(error);
             }
@@ -107,7 +89,20 @@ const BlackBorder: React.FC = () => {
 const Main: React.FC = () => {
   const state = useObservable(rolesCached$);
   useSubject(edited$);
-  console.log(state, edited$.value);
+
+  function fetchCallback() {
+    return getRolesDocs("/roles");
+  }
+
+  function stateUpdateCallback(param: Array<IRolesDoc>) {
+    fetchedRoles$.next(param);
+  }
+
+  const { error, loading } = useStartupData<IRolesDoc>(
+    fetchCallback,
+    stateUpdateCallback,
+    "Something Gone Wrong or You don't have sufficient Permission"
+  );
 
   return (
     <div
@@ -134,21 +129,21 @@ const Main: React.FC = () => {
         </div>
       </div>
       <div style={{ margin: 20, background: "white" }}>
-        {state !== undefined ? (
-          state.map((s) => (
-            <StaffList
-              key={s.email}
-              email={s.email}
-              option={s.option}
-              id={s.id}
-              createdAt={s.createdAt}
-              updatedAt={s.updatedAt}
-              disabled={s.disabled}
-            />
-          ))
-        ) : (
-          <h1>Loading Roles</h1>
-        )}
+        {loading && <h1>Loading</h1>}
+        {error.length > 0 && <h1>{error}</h1>}
+        {state !== undefined
+          ? state.map((s) => (
+              <StaffList
+                key={s.email}
+                email={s.email}
+                role={s.role}
+                id={s.id}
+                createdAt={s.createdAt}
+                updatedAt={s.updatedAt}
+                disabled={s.disabled}
+              />
+            ))
+          : null}
       </div>
     </div>
   );
@@ -156,27 +151,27 @@ const Main: React.FC = () => {
 
 const StaffList: React.FC<{
   email: string;
-  option: string;
+  role: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   id: string;
   disabled: boolean;
 }> = (props) => {
-  useSubject(showStaffEditForm$);
+  const [editFormShow, setEditFormShow] = React.useState(false);
   return (
     <React.Fragment>
-      {showStaffEditForm$.value ? (
+      {editFormShow ? (
         <StaffForm
           headerValue="Edit Account"
           placeHolderEmail={props.email}
-          placeHolderRole={props.option}
-          closeForm={() => showStaffEditForm$.next(false)}
+          placeHolderRole={props.role}
+          closeForm={() => setEditFormShow(false)}
           submitForm={async (email: string, option: string) => {
             const timestamp = serverTimestamp();
             try {
               await updateDoc(doc(firestore, `/roles/${props.id}`), {
                 email: email,
-                option: option,
+                role: option,
                 updatedAt: timestamp,
               });
             } catch (error) {
@@ -186,7 +181,6 @@ const StaffList: React.FC<{
               const docRef = doc(firestore, "roles", props.id);
               const res = await getDoc(docRef);
               const data = res.data() as IRolesDoc;
-              console.log(data);
               edited$.next(data);
             } catch (error) {
               console.error(error);
@@ -204,7 +198,7 @@ const StaffList: React.FC<{
         }}
       >
         <h4>{props.email}</h4>
-        <h4>{props.option}</h4>
+        <h4>{props.role}</h4>
         <div
           style={{
             display: "flex",
@@ -212,7 +206,7 @@ const StaffList: React.FC<{
             justifyContent: "center",
           }}
         >
-          <button onClick={() => showStaffEditForm$.next(true)}>Edit</button>
+          <button onClick={() => setEditFormShow(true)}>Edit</button>
           <button>Disable</button>
         </div>
       </div>

@@ -23,6 +23,8 @@ const StaffForm: React.FC<{
     props.submitForm(data.email, data.option);
   }
 
+  console.log(props.placeHolderEmail);
+
   return (
     <div
       style={{

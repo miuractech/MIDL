@@ -14,7 +14,6 @@ export async function firebaseGoogleSignin() {
 
   try {
     const res = await signInWithPopup(auth, provider);
-    console.log(res);
   } catch (error) {
     throw new Error("Something went wrong!");
   }
@@ -29,9 +28,9 @@ export async function getRolesDocs(path: string) {
     const q = query(collection(firestore, path)) as Query<IRolesDoc>;
     const docs = await getDocs(q);
     const docsMapped = docs.docs.map((doc) => doc.data());
+    console.log(docsMapped);
     return docsMapped;
   } catch (error) {
-    console.log(error);
     console.error(error);
   }
 }
