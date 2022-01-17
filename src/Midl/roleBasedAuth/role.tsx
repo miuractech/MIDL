@@ -28,6 +28,9 @@ const Role: React.FC = () => {
         ) {
           user$.next(user);
           setRoleState("Signed");
+        } else if (!user.emailVerified) {
+          user$.next(user);
+          setRoleState("NotSigned");
         } else {
           user$.next(null);
           setRoleState("NotSigned");

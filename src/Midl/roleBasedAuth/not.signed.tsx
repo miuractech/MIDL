@@ -9,11 +9,25 @@ import React from "react";
 import { useForm } from "react-hook-form";
 
 import { auth } from "../../config/firebase.config";
+import { emailRegex, notSigned } from "../../constants";
 import { useSubject } from "../../global/hooks";
-import { notSigned, notSignedStates$, user$ } from "./shared.state";
+import { ButtonWithOutStyle, Input, UniversalButton } from "./form.ui";
+import { notSignedStates$, user$ } from "./shared.state";
 
-const emailRegex =
-  /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const Container = {
+  display: "flex",
+  height: "100vh",
+  width: "100vw",
+  minHeight: "600px",
+  minWidth: "400px",
+  justifyContent: "center",
+  alignItems: "center",
+};
+
+const Inner = {
+  display: "flex",
+  padding: 10,
+};
 
 const NotSigned: React.FC = () => {
   useSubject(notSignedStates$);
@@ -51,43 +65,86 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <React.Fragment>
-      {user$.value !== null ? (
-        <button
-          onClick={() => {
-            signOut(auth);
+    <div style={{ ...Container, background: "white" }}>
+      <div
+        style={{
+          ...Inner,
+          background: "white",
+          boxShadow: "0 3px 10px rgb(0 0 0 / 0.2)",
+          flexDirection: "column",
+        }}
+      >
+        {user$.value !== null ? (
+          <div>
+            <span style={{ color: "green" }}>
+              You are not signed in as a Staff Member or your email is not
+              verified
+            </span>
+            <ButtonWithOutStyle
+              handleClick={() => {
+                signOut(auth);
+              }}
+            >
+              Sign Out
+            </ButtonWithOutStyle>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <h3>Sign Up As A Staff Member</h3>
+            </div>
+            <form
+              style={{ display: "flex", flexDirection: "column" }}
+              onSubmit={handleSubmit(submit)}
+            >
+              <Input
+                placeHolder="email"
+                type="text"
+                register={register}
+                field="email"
+                constraintsObj={{ required: true, pattern: emailRegex }}
+              />
+              <Input
+                placeHolder="password"
+                type="password"
+                register={register}
+                field="password"
+                constraintsObj={{ required: true }}
+              />
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <UniversalButton handleClick={() => handleSubmit(submit)}>
+                  Sign Up
+                </UniversalButton>
+              </div>
+            </form>
+          </div>
+        )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column",
           }}
         >
-          Sign Out
-        </button>
-      ) : (
-        <div>
-          <form onSubmit={handleSubmit(submit)}>
-            <input
-              placeholder="email"
-              type="text"
-              {...register("email", { required: true, pattern: emailRegex })}
-            />
-            <input
-              placeholder="password"
-              type="password"
-              {...register("password", { required: true })}
-            />
-            <button onClick={handleSubmit(submit)}>Sign Up</button>
-          </form>
+          <ButtonWithOutStyle
+            handleClick={() => notSignedStates$.next(notSigned.LOGIN)}
+          >
+            Already Have an Account? Login
+          </ButtonWithOutStyle>
+          <ButtonWithOutStyle
+            handleClick={() => notSignedStates$.next(notSigned.VERIFY_EMAIL)}
+          >
+            Verify Email
+          </ButtonWithOutStyle>
+          <ButtonWithOutStyle
+            handleClick={() => notSignedStates$.next(notSigned.FORGOT_PASSWORD)}
+          >
+            Forgot Password
+          </ButtonWithOutStyle>
+          {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
         </div>
-      )}
-      <button onClick={() => notSignedStates$.next(notSigned.LOGIN)}>
-        Already Have an Account? Login
-      </button>
-      <button onClick={() => notSignedStates$.next(notSigned.VERIFY_EMAIL)}>
-        Verify Email
-      </button>
-      <button onClick={() => notSignedStates$.next(notSigned.FORGOT_PASSWORD)}>
-        Forgot Password
-      </button>
-      {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
-    </React.Fragment>
+      </div>
+    </div>
   );
 };
 
@@ -108,43 +165,86 @@ const Login: React.FC = () => {
   };
 
   return (
-    <React.Fragment>
-      {user$.value !== null ? (
-        <button
-          onClick={() => {
-            signOut(auth);
+    <div style={{ ...Container, background: "white" }}>
+      <div
+        style={{
+          ...Inner,
+          background: "white",
+          boxShadow: "0 3px 10px rgb(0 0 0 / 0.2)",
+          flexDirection: "column",
+        }}
+      >
+        {user$.value !== null ? (
+          <div>
+            <span style={{ color: "green" }}>
+              You are not signed in as a Staff Member or your email is not
+              verified
+            </span>
+            <ButtonWithOutStyle
+              handleClick={() => {
+                signOut(auth);
+              }}
+            >
+              Sign Out
+            </ButtonWithOutStyle>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <h3>Log In As A Staff Member</h3>
+            </div>
+            <form
+              style={{ display: "flex", flexDirection: "column" }}
+              onSubmit={handleSubmit(submit)}
+            >
+              <Input
+                placeHolder="email"
+                type="text"
+                register={register}
+                field="email"
+                constraintsObj={{ required: true, pattern: emailRegex }}
+              />
+              <Input
+                placeHolder="password"
+                type="password"
+                register={register}
+                field="password"
+                constraintsObj={{ required: true }}
+              />
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <UniversalButton handleClick={() => handleSubmit(submit)}>
+                  Log In
+                </UniversalButton>
+              </div>
+            </form>
+          </div>
+        )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column",
           }}
         >
-          Sign Out
-        </button>
-      ) : (
-        <div>
-          <form onSubmit={handleSubmit(submit)}>
-            <input
-              placeholder="email"
-              type="text"
-              {...register("email", { required: true, pattern: emailRegex })}
-            />
-            <input
-              placeholder="password"
-              type="password"
-              {...register("password", { required: true })}
-            />
-            <button onClick={handleSubmit(submit)}>Sign In</button>
-          </form>
+          <ButtonWithOutStyle
+            handleClick={() => notSignedStates$.next(notSigned.SIGN_UP)}
+          >
+            Create An Account
+          </ButtonWithOutStyle>
+          <ButtonWithOutStyle
+            handleClick={() => notSignedStates$.next(notSigned.VERIFY_EMAIL)}
+          >
+            Verify Email
+          </ButtonWithOutStyle>
+          <ButtonWithOutStyle
+            handleClick={() => notSignedStates$.next(notSigned.FORGOT_PASSWORD)}
+          >
+            Forgot Password
+          </ButtonWithOutStyle>
+          {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
         </div>
-      )}
-      <button onClick={() => notSignedStates$.next(notSigned.SIGN_UP)}>
-        Create an Account
-      </button>
-      <button onClick={() => notSignedStates$.next(notSigned.VERIFY_EMAIL)}>
-        Verify Email
-      </button>
-      <button onClick={() => notSignedStates$.next(notSigned.FORGOT_PASSWORD)}>
-        Forgot Password
-      </button>
-      {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
-    </React.Fragment>
+      </div>
+    </div>
   );
 };
 
@@ -152,19 +252,27 @@ const VerifyEmail: React.FC = () => {
   return (
     <React.Fragment>
       <div>
-        <button
-          onClick={async () => {
-            if (user$.value !== null) {
-              try {
-                await sendEmailVerification(user$.value);
-              } catch (error) {
-                console.error(error);
+        {user$.value !== null ? (
+          <UniversalButton
+            handleClick={async () => {
+              if (user$.value !== null) {
+                try {
+                  await sendEmailVerification(user$.value);
+                } catch (error) {
+                  console.error(error);
+                }
               }
-            }
-          }}
+            }}
+          >
+            Send Verify Link
+          </UniversalButton>
+        ) : null}
+
+        <ButtonWithOutStyle
+          handleClick={() => notSignedStates$.next(notSigned.SIGN_UP)}
         >
-          Send Verify Link
-        </button>
+          Cancel
+        </ButtonWithOutStyle>
       </div>
     </React.Fragment>
   );
