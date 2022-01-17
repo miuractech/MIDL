@@ -9,6 +9,13 @@ import {
 import { auth, firestore } from "../../config/firebase.config";
 import { IRolesDoc } from "./types";
 
+
+
+
+/**
+ * Google SignIn function
+ * @return {user}
+ */
 export async function firebaseGoogleSignin() {
   const provider = new GoogleAuthProvider();
 

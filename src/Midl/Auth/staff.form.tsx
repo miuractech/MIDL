@@ -53,7 +53,7 @@ const StaffForm: React.FC<{
       >
         <h3>{props.headerValue}</h3>
         <form
-          onSubmit={handleSubmit(submit)}
+          // onSubmit={handleSubmit(submit)}
           style={{ margin: "20px 0px 20px 0px" }}
         >
           <div>
