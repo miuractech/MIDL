@@ -1,5 +1,6 @@
 import React from "react";
 import { BehaviorSubject, from, Observable } from "rxjs";
+import * as yup from "yup";
 
 export function useSubject<T>(subject$: BehaviorSubject<T>) {
   const [state, setState] = React.useState(subject$.value);
@@ -27,8 +28,8 @@ export function useObservable<T>(observable$: Observable<T>) {
 }
 
 export function useStartupData<T>(
-  fetchCallback: () => Promise<Array<T> | undefined>,
-  stateUpdateCallBack: (param: Array<T>) => void,
+  fetchCallback: () => Promise<T | undefined>,
+  stateUpdateCallBack: (param: T) => void,
   errorMessage: string
 ) {
   const [error, setError] = React.useState("");
@@ -49,4 +50,41 @@ export function useStartupData<T>(
   }, []);
 
   return { error, loading };
+}
+
+export function useYupValidationResolver(validationSchema: any) {
+  return React.useCallback(
+    async (data) => {
+      try {
+        const values = await validationSchema.validate(data, {
+          abortEarly: false,
+        });
+
+        return {
+          values,
+          errors: {},
+        };
+      } catch (errors) {
+        if (errors instanceof yup.ValidationError) {
+          return {
+            values: {},
+            errors: errors.inner.reduce((allErrors, currentError) => {
+              if (currentError.path !== undefined) {
+                return {
+                  ...allErrors,
+                  [currentError?.path]: {
+                    type: currentError.type ?? "validation",
+                    message: currentError.message,
+                  },
+                };
+              } else {
+                return { ...allErrors };
+              }
+            }, {}),
+          };
+        }
+      }
+    },
+    [validationSchema]
+  );
 }

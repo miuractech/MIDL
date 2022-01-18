@@ -1,7 +1,10 @@
-import useAuth from "./auth.hooks";
+import React from "react";
 
-const NotSignedUser: React.FC = () => {
-  const { firebaseGoogleSignin } = useAuth();
+import { useFirebaseAuth } from "../../Midl/Auth/auth.hooks";
+import { user$ } from "../../store/user";
+
+const AdminUserNotSignedIn: React.FC = () => {
+  const { firebaseGoogleSignIn } = useFirebaseAuth();
 
   return (
     <div style={{ display: "flex" }}>
@@ -37,7 +40,7 @@ const NotSignedUser: React.FC = () => {
         <div style={{ display: "flex", justifyContent: "center" }}>
           <button
             style={{ border: "none" }}
-            onClick={() => firebaseGoogleSignin()}
+            onClick={async () => user$.next(await firebaseGoogleSignIn())}
           >
             <div
               style={{
@@ -59,4 +62,4 @@ const NotSignedUser: React.FC = () => {
   );
 };
 
-export default NotSignedUser;
+export default AdminUserNotSignedIn;

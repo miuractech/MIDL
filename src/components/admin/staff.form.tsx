@@ -1,29 +1,41 @@
 import { useForm } from "react-hook-form";
-
-import Button from "./blue.button";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import UniversalButton from "../global/universal.button";
 
 interface IForm {
   email: string;
-  option: "manager" | "staff" | "printing" | "shipping";
+  role: "manager" | "staff" | "printing" | "shipping";
 }
+
+const validationSchema = yup.object({
+  email: yup
+    .string()
+    .email("Must Be a Valid Email Address")
+    .max(200, "Exceeding Max Character Limit of 200")
+    .required("This Email Field is Required"),
+  role: yup.string(),
+});
 
 const StaffForm: React.FC<{
   placeHolderEmail?: string;
   placeHolderRole?: string;
   closeForm: () => void;
-  submitForm: (email: string, option: string) => void;
+  submitForm: (email: string, role: string) => void;
   buttonValue: string;
   headerValue: string;
 }> = (props) => {
-  const { register, handleSubmit } = useForm<IForm>();
-  const emailRegex =
-    /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<IForm>({
+    resolver: yupResolver(validationSchema),
+  });
 
   function submit(data: IForm) {
-    props.submitForm(data.email, data.option);
+    props.submitForm(data.email, data.role);
   }
-
-  console.log(props.placeHolderEmail);
 
   return (
     <div
@@ -53,7 +65,7 @@ const StaffForm: React.FC<{
       >
         <h3>{props.headerValue}</h3>
         <form
-          // onSubmit={handleSubmit(submit)}
+          onSubmit={handleSubmit(submit)}
           style={{ margin: "20px 0px 20px 0px" }}
         >
           <div>
@@ -61,17 +73,14 @@ const StaffForm: React.FC<{
               placeholder={
                 props.placeHolderEmail ? props.placeHolderEmail : "Email"
               }
-              {...register("email", {
-                required: true,
-                pattern: emailRegex,
-                value: props.placeHolderEmail ? props.placeHolderEmail : "",
-              })}
+              {...register("email")}
             />
+            <span style={{ color: "red" }}>{errors.email?.message}</span>
             <select
               defaultValue={
                 props.placeHolderRole ? props.placeHolderRole : "staff"
               }
-              {...register("option", { required: true })}
+              {...register("role")}
             >
               <option>manager</option>
               <option>staff</option>
@@ -86,10 +95,12 @@ const StaffForm: React.FC<{
               marginTop: 10,
             }}
           >
-            <Button handleClick={handleSubmit(submit)}>
+            <UniversalButton handleClick={handleSubmit(submit)}>
               {props.buttonValue}
-            </Button>
-            <Button handleClick={() => props.closeForm()}>Close</Button>
+            </UniversalButton>
+            <UniversalButton handleClick={() => props.closeForm()}>
+              Close
+            </UniversalButton>
           </div>
         </form>
       </div>

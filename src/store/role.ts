@@ -1,5 +1,5 @@
 import { BehaviorSubject, combineLatestWith, map } from "rxjs";
-import { IRolesDoc } from "../Midl/Auth/types";
+import { IRolesDoc } from "../types/role.types";
 
 const fetchedRoles$ = new BehaviorSubject<Array<IRolesDoc>>([]);
 const edited$ = new BehaviorSubject<IRolesDoc | null>(null);

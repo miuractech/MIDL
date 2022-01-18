@@ -1,4 +1,4 @@
-const Button: React.FC<{ handleClick: () => void }> = (props) => {
+const UniversalButton: React.FC<{ handleClick: () => void }> = (props) => {
   return (
     <button
       style={{
@@ -17,4 +17,4 @@ const Button: React.FC<{ handleClick: () => void }> = (props) => {
   );
 };
 
-export default Button;
+export default UniversalButton;
