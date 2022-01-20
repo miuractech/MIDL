@@ -1,4 +1,4 @@
-import { Timestamp, where } from "firebase/firestore";
+import { orderBy, Timestamp } from "firebase/firestore";
 import React from "react";
 import { BehaviorSubject } from "rxjs";
 import { v4 as uuidv4 } from "uuid";
@@ -21,13 +21,12 @@ const AdminUserSignedIn: React.FC = () => {
     useFirebaseRepositoryAdmin();
   const submitForm = async (email: string, role: string) => {
     const id = uuidv4();
-    edited$.next(
-      await createOneRoleForOneStaff(
-        collectionPath,
-        { email: email, role: role, id: id, disabled: false },
-        id
-      )
+    const res = await createOneRoleForOneStaff(
+      collectionPath,
+      { email: email, role: role, id: id, disabled: false },
+      id
     );
+    if (typeof res !== "string") edited$.next(res);
   };
 
   return (
@@ -76,7 +75,7 @@ const Main: React.FC = () => {
   const { getAllRolesDocs, collectionPath } = useFirebaseRepositoryAdmin();
 
   function fetchCallback() {
-    return getAllRolesDocs(collectionPath, [where("role", "!=", "admin")]);
+    return getAllRolesDocs(collectionPath, [orderBy("createdAt")]);
   }
 
   function stateUpdateCallback(param: Array<IRolesDoc>) {
@@ -84,11 +83,8 @@ const Main: React.FC = () => {
   }
   const { loading, error } = useStartupData<Array<IRolesDoc>>(
     fetchCallback,
-    stateUpdateCallback,
-    "Sorry! Something has gone wrong or you don't have sufficient permission."
+    stateUpdateCallback
   );
-
-  console.log(rolesCachedState);
 
   return (
     <div
@@ -116,7 +112,7 @@ const Main: React.FC = () => {
       </div>
       <div style={{ margin: 20, background: "white" }}>
         {loading && <h1>Loading</h1>}
-        {error.length > 0 && <h1>{error}</h1>}
+        {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
         {rolesCachedState !== undefined
           ? rolesCachedState.map((s) => (
               <StaffList
@@ -156,13 +152,12 @@ const StaffList: React.FC<{
           placeHolderRole={props.role}
           closeForm={() => setEditFormShow(false)}
           submitForm={async (email: string, role: string) => {
-            edited$.next(
-              await updateOneRoleForOneStaff(
-                collectionPath,
-                { email: email, role: role },
-                props.id
-              )
+            const res = await updateOneRoleForOneStaff(
+              collectionPath,
+              { email: email, role: role },
+              props.id
             );
+            if (typeof res !== "string") edited$.next(res);
           }}
           buttonValue="Edit"
         />
@@ -175,7 +170,7 @@ const StaffList: React.FC<{
           padding: 10,
         }}
       >
-        <h4>{props.email}</h4>
+        <h4 style={{ width: 300 }}>{props.email}</h4>
         <h4>{props.role}</h4>
         <div
           style={{

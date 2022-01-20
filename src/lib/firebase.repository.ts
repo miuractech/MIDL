@@ -1,3 +1,4 @@
+import { FirebaseError } from "firebase/app";
 import {
   collection,
   deleteDoc,
@@ -15,6 +16,14 @@ import {
 
 import { firestore } from "../config/firebase.config";
 
+/**
+ * This is a Generic Firebase Repository Class,
+ * that takes a typeparam that defines the document type and a string param for as the collection path.
+ *
+ * @typeParam DocType
+ * @param collectionPath
+ * @returns an instance of this class
+ */
 export default class FirebaseRepository<T> {
   private _path: string = "";
 
@@ -40,7 +49,9 @@ export default class FirebaseRepository<T> {
       const docs = await getDocs(firebaseQueryBuilder);
       return docs.docs.map((doc) => doc.data());
     } catch (error) {
-      throw error;
+      if (error instanceof FirebaseError) {
+        return error.message;
+      } else return "Unknown Error Caught!";
     }
   }
 
@@ -55,7 +66,9 @@ export default class FirebaseRepository<T> {
       if (document.exists()) return document.data();
       else throw new Error("Document doesn't exists");
     } catch (error) {
-      throw error;
+      if (error instanceof FirebaseError) {
+        return error.message;
+      } else return "Unknown Error Caught!";
     }
   }
 
@@ -68,7 +81,9 @@ export default class FirebaseRepository<T> {
       });
       return await this.getOne(path, docId);
     } catch (error) {
-      throw error;
+      if (error instanceof FirebaseError) {
+        return error.message;
+      } else return "Unknown Error Caught!";
     }
   }
 
@@ -79,7 +94,9 @@ export default class FirebaseRepository<T> {
       await updateDoc(docRef, { ...payload, updatedAt: timestamp });
       return await this.getOne(path, docId);
     } catch (error) {
-      throw error;
+      if (error instanceof FirebaseError) {
+        return error.message;
+      } else return "Unknown Error Caught!";
     }
   }
 
@@ -90,7 +107,9 @@ export default class FirebaseRepository<T> {
         message: "Document Successfully Deleted",
       };
     } catch (error) {
-      throw error;
+      if (error instanceof FirebaseError) {
+        return error.message;
+      } else return "Unknown Error Caught!";
     }
   }
 }

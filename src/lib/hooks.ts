@@ -28,25 +28,20 @@ export function useObservable<T>(observable$: Observable<T>) {
 }
 
 export function useStartupData<T>(
-  fetchCallback: () => Promise<T | undefined>,
-  stateUpdateCallBack: (param: T) => void,
-  errorMessage: string
+  fetchCallback: () => Promise<T | string>,
+  stateUpdateCallBack: (param: T) => void
 ) {
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    try {
-      const res = from(fetchCallback());
-      const sub = res.subscribe((val) => {
-        val !== undefined && stateUpdateCallBack(val);
-      });
-      setLoading(false);
-      return () => sub.unsubscribe();
-    } catch (error) {
-      setError(errorMessage);
-      setLoading(false);
-    }
+    const res = from(fetchCallback());
+    const sub = res.subscribe((val) => {
+      if (typeof val !== "string") stateUpdateCallBack(val);
+      else setError(val);
+    });
+    setLoading(false);
+    return () => sub.unsubscribe();
   }, []);
 
   return { error, loading };

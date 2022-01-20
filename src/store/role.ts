@@ -9,6 +9,8 @@ const rolesCached$ = edited$.pipe(
     if (edited !== null) {
       if (val.length === 0) {
         val.push(edited);
+      } else if (val.filter((v) => v.email === edited.email).length === 0) {
+        val.push(edited);
       } else {
         const index = val.findIndex((role) => role.id === edited.id);
         if (index !== -1) {
