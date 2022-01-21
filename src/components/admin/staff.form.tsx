@@ -70,7 +70,7 @@ const StaffForm: React.FC<{
         >
           <div>
             <input
-              placeholder={
+              defaultValue={
                 props.placeHolderEmail ? props.placeHolderEmail : "Email"
               }
               {...register("email")}

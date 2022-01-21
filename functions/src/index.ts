@@ -1,33 +1,29 @@
 import * as functions from "firebase-functions";
 
-import { auth } from "./config";
-import { roles } from "./constants";
+import { AdminRole, StaffRoles } from "./constants";
 import { TRole } from "./types";
+import { assignRole } from "./utils";
 
-exports.assignRoleOnCreate = functions.firestore
+exports.assignStaffRoleOnCreate = functions.firestore
   .document("roles/{docId}")
   .onCreate(async (snapshot, context) => {
-    const data = snapshot.data() as TRole;
-    try {
-      const user = await auth.getUserByEmail(data.email);
-      if (user && roles.includes(data.role)) {
-        await auth.setCustomUserClaims(user.uid, { role: data.role });
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    await assignRole(snapshot.data() as TRole, StaffRoles);
   });
 
-exports.assignRoleOnUpdate = functions.firestore
+exports.assignStaffRoleOnUpdate = functions.firestore
   .document("roles/{docId}")
   .onUpdate(async (snapshot, context) => {
-    const data = snapshot.after.data() as TRole;
-    try {
-      const user = await auth.getUserByEmail(data.email);
-      if (user && roles.includes(data.role)) {
-        await auth.setCustomUserClaims(user.uid, { role: data.role });
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    await assignRole(snapshot.after.data() as TRole, StaffRoles);
+  });
+
+exports.assignAdminRoleOnCreate = functions.firestore
+  .document("admin/{docId}")
+  .onCreate(async (snapshot, context) => {
+    await assignRole(snapshot.data() as TRole, AdminRole);
+  });
+
+exports.assignAdminRoleOnUpdate = functions.firestore
+  .document("admin/{docId}")
+  .onUpdate(async (snapshot, context) => {
+    await assignRole(snapshot.after.data() as TRole, AdminRole);
   });

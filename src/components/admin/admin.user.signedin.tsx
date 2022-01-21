@@ -24,7 +24,7 @@ const AdminUserSignedIn: React.FC = () => {
     const res = await createOneRoleForOneStaff(
       collectionPath,
       { email: email, role: role, id: id, disabled: false },
-      id
+      email
     );
     if (typeof res !== "string") edited$.next(res);
   };
@@ -155,7 +155,7 @@ const StaffList: React.FC<{
             const res = await updateOneRoleForOneStaff(
               collectionPath,
               { email: email, role: role },
-              props.id
+              email
             );
             if (typeof res !== "string") edited$.next(res);
           }}
