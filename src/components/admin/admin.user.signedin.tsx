@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { useObservable, useStartupData, useSubject } from "../../lib/hooks";
 import {
+  useFetchUserIsAdmin,
   useFirebaseAuth,
   useFirebaseRepositoryAdmin,
 } from "../../Midl/Auth/auth.hooks";
@@ -73,6 +74,7 @@ const Main: React.FC = () => {
   const rolesCachedState = useObservable(rolesCached$);
   useSubject(edited$);
   const { getAllRolesDocs, collectionPath } = useFirebaseRepositoryAdmin();
+  const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin();
 
   function fetchCallback() {
     return getAllRolesDocs(collectionPath, [orderBy("createdAt")]);
@@ -104,16 +106,18 @@ const Main: React.FC = () => {
         }}
       >
         <h3>Staff Account and Roles</h3>
-        <div>
-          <UniversalButton handleClick={() => showStaffForm$.next(true)}>
-            Add New Staff
-          </UniversalButton>
-        </div>
+        {isAdmin && !loadingIsAdmin ? (
+          <div>
+            <UniversalButton handleClick={() => showStaffForm$.next(true)}>
+              Add New Staff
+            </UniversalButton>
+          </div>
+        ) : null}
       </div>
       <div style={{ margin: 20, background: "white" }}>
         {loading && <h1>Loading</h1>}
         {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
-        {rolesCachedState !== undefined
+        {rolesCachedState !== undefined && isAdmin && !loadingIsAdmin
           ? rolesCachedState.map((s) => (
               <StaffList
                 key={s.email}

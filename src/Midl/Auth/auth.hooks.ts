@@ -14,16 +14,10 @@ export function useFetchFirebaseGoogleUser() {
   React.useEffect(() => {
     try {
       setLoading(true);
-      const sub = onAuthStateChanged(auth, async (user) => {
+      const sub = onAuthStateChanged(auth, (user) => {
         if (user !== null) {
-          const idToken = await user?.getIdTokenResult();
-          if (idToken !== undefined && idToken.claims["role"] === "admin") {
-            setLoading(false);
-            user$.next(user);
-          } else {
-            setLoading(false);
-            user$.next(null);
-          }
+          user$.next(user);
+          setLoading(false);
         } else {
           setLoading(false);
           user$.next(null);
@@ -37,6 +31,26 @@ export function useFetchFirebaseGoogleUser() {
   }, []);
 
   return { loading, error };
+}
+
+export function useFetchUserIsAdmin() {
+  const [isAdmin, setIsAdmin] = React.useState(false);
+  const [loadingIsAdmin, setLoadingIsAdmin] = React.useState(true);
+
+  React.useEffect(() => {
+    const sub = user$.subscribe(async (user) => {
+      const token = await user?.getIdTokenResult();
+      if (token !== undefined && token.claims["role"] === "admin") {
+        setIsAdmin(true);
+        setLoadingIsAdmin(false);
+      } else {
+        setLoadingIsAdmin(false);
+      }
+    });
+    return () => sub.unsubscribe();
+  }, []);
+
+  return { isAdmin, loadingIsAdmin };
 }
 
 export function useFirebaseAuth() {
