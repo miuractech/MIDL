@@ -1,0 +1,1 @@
+export const roles:string[] = ["manager", "staff", "printing", "shipping"]
