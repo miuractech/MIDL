@@ -1,7 +1,12 @@
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+
 import UniversalButton from "../global/universal.button";
+import { useSubject } from "../../lib/hooks";
+import { fetchRolesError$, staffFormError$ } from "../../store/error";
+import { useFetchUserIsAdmin } from "../../Midl/Auth/auth.hooks";
+import { user$ } from "../../store/user";
 
 interface IForm {
   email: string;
@@ -36,6 +41,9 @@ const StaffForm: React.FC<{
   function submit(data: IForm) {
     props.submitForm(data.email, data.role);
   }
+
+  useSubject(staffFormError$);
+  const { isAdmin } = useFetchUserIsAdmin(user$.value);
 
   return (
     <div
@@ -103,6 +111,9 @@ const StaffForm: React.FC<{
             </UniversalButton>
           </div>
         </form>
+        {fetchRolesError$.value !== null && !isAdmin && (
+          <span style={{ color: "red" }}>{fetchRolesError$.value.message}</span>
+        )}
       </div>
     </div>
   );

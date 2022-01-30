@@ -1,6 +1,6 @@
+import { Auth, onAuthStateChanged, User } from "firebase/auth";
 import React from "react";
 import { BehaviorSubject, from, Observable } from "rxjs";
-import * as yup from "yup";
 
 export function useSubject<T>(subject$: BehaviorSubject<T>) {
   const [state, setState] = React.useState(subject$.value);
@@ -27,59 +27,48 @@ export function useObservable<T>(observable$: Observable<T>) {
   return state;
 }
 
-export function useStartupData<T>(
-  fetchCallback: () => Promise<T | string>,
-  stateUpdateCallBack: (param: T) => void
+export function useFetchDataOnMount<T, E>(
+  fetchCallback: () => Promise<T | E>,
+  stateUpdateCallBackOrCatchError: (param: T | E) => void
 ) {
-  const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const res = from(fetchCallback());
-    const sub = res.subscribe((val) => {
-      if (typeof val !== "string") stateUpdateCallBack(val);
-      else setError(val);
-    });
+    const sub = res.subscribe((val) => stateUpdateCallBackOrCatchError(val));
     setLoading(false);
     return () => sub.unsubscribe();
   }, []);
 
-  return { error, loading };
+  return { loading };
 }
 
-export function useYupValidationResolver(validationSchema: any) {
-  return React.useCallback(
-    async (data) => {
-      try {
-        const values = await validationSchema.validate(data, {
-          abortEarly: false,
-        });
+export function useFetchFirebaseUser(
+  defaultErrorMessage: string,
+  stateUpdateCallBack: (userParam: User | null) => void,
+  auth: Auth
+) {
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [firebaseUser, setFirebaseUser] = React.useState<null | User>(null);
 
-        return {
-          values,
-          errors: {},
-        };
-      } catch (errors) {
-        if (errors instanceof yup.ValidationError) {
-          return {
-            values: {},
-            errors: errors.inner.reduce((allErrors, currentError) => {
-              if (currentError.path !== undefined) {
-                return {
-                  ...allErrors,
-                  [currentError?.path]: {
-                    type: currentError.type ?? "validation",
-                    message: currentError.message,
-                  },
-                };
-              } else {
-                return { ...allErrors };
-              }
-            }, {}),
-          };
+  React.useEffect(() => {
+    try {
+      const sub = onAuthStateChanged(auth, (user) => {
+        if (user !== null) {
+          setFirebaseUser(user);
+          stateUpdateCallBack(user);
+        } else {
+          stateUpdateCallBack(null);
         }
-      }
-    },
-    [validationSchema]
-  );
+        setLoading(false);
+      });
+      return sub;
+    } catch (error) {
+      setLoading(false);
+      setError(defaultErrorMessage);
+    }
+  }, []);
+
+  return { loading, error, firebaseUser };
 }

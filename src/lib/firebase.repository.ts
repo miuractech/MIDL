@@ -4,6 +4,7 @@ import {
   deleteDoc,
   doc,
   DocumentReference,
+  Firestore,
   getDoc,
   getDocs,
   Query,
@@ -13,34 +14,31 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import { TApplicationErrorObject } from "./types/application.error.type";
 
-import { firestore } from "../config/firebase.config";
+import { ApplicationError } from "./application.error";
 
-/**
- * This is a Generic Firebase Repository Class,
- * that takes a typeparam that defines the document type and a string param for as the collection path.
- *
- * @typeParam DocType
- * @param collectionPath
- * @returns an instance of this class
- */
-export default class FirebaseRepository<T> {
-  private _path: string = "";
+export class FirebaseRepository<T> {
+  private _path: string;
+  private _firestore: Firestore;
+  private _defaultErrorMessage: string;
 
-  constructor(path: string) {
+  constructor(path: string, firestore: Firestore, defaultErrorMessage: string) {
     this._path = path;
-    this.getOne = this.getOne.bind(this);
-    this.getAll = this.getAll.bind(this);
-    this.createOne = this.createOne.bind(this);
-    this.updatedOne = this.updatedOne.bind(this);
-    this.deleteOne = this.deleteOne.bind(this);
+    this._firestore = firestore;
+    this._defaultErrorMessage = defaultErrorMessage;
   }
 
-  getPath() {
-    return this._path;
-  }
+  getPath = () => this._path;
+  getFirestore = () => this._firestore;
+  getDefaultErrorMessage = () => this._defaultErrorMessage;
 
-  async getAll(path: string, queryConstraints: Array<QueryConstraint>) {
+  async getAll(
+    queryConstraints: Array<QueryConstraint>,
+    path: string,
+    firestore: Firestore,
+    defaultErrorMessage: string
+  ) {
     try {
       const firebaseQueryBuilder = query(
         collection(firestore, path),
@@ -50,12 +48,22 @@ export default class FirebaseRepository<T> {
       return docs.docs.map((doc) => doc.data());
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return error.message;
-      } else return "Unknown Error Caught!";
+        return new ApplicationError().handleFirebaseError(error, "error");
+      } else
+        return new ApplicationError().handleDefaultError(
+          "Unknown",
+          defaultErrorMessage,
+          "error"
+        );
     }
   }
 
-  async getOne(path: string, docId: string) {
+  async getOne(
+    docId: string,
+    path: string,
+    firestore: Firestore,
+    defaultErrorMessage: string
+  ) {
     try {
       const firebaseDocRef = doc(
         firestore,
@@ -64,43 +72,87 @@ export default class FirebaseRepository<T> {
       ) as DocumentReference<T>;
       const document = await getDoc(firebaseDocRef);
       if (document.exists()) return document.data();
-      else throw new Error("Document doesn't exists");
+      else return new ApplicationError().handleDocumentNotFound();
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return error.message;
-      } else return "Unknown Error Caught!";
+        return new ApplicationError().handleFirebaseError(error, "error");
+      } else
+        return new ApplicationError().handleDefaultError(
+          "Unknown",
+          defaultErrorMessage,
+          "error"
+        );
     }
   }
 
-  async createOne(path: string, payload: T, docId: string) {
+  async createOne(
+    payload: T,
+    docId: string,
+    path: string,
+    firestore: Firestore,
+    defaultErrorMessage: string,
+    getOneDoc: (
+      docId: string,
+      path: string,
+      firestore: Firestore,
+      defaultErrorMessage: string
+    ) => Promise<T | TApplicationErrorObject>
+  ) {
     try {
       await setDoc(doc(firestore, `${path}/${docId}`), {
         ...payload,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      return await this.getOne(path, docId);
+      return await getOneDoc(docId, path, firestore, defaultErrorMessage);
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return error.message;
-      } else return "Unknown Error Caught!";
+        return new ApplicationError().handleFirebaseError(error, "error");
+      } else
+        return new ApplicationError().handleDefaultError(
+          "Unknown",
+          defaultErrorMessage,
+          "error"
+        );
     }
   }
 
-  async updatedOne(path: string, payload: Partial<T>, docId: string) {
+  async updatedOne(
+    payload: Partial<T>,
+    docId: string,
+    path: string,
+    firestore: Firestore,
+    defaultErrorMessage: string,
+    getOneDoc: (
+      docId: string,
+      path: string,
+      firestore: Firestore,
+      defaultErrorMessage: string
+    ) => Promise<T | TApplicationErrorObject>
+  ) {
     const timestamp = serverTimestamp();
     try {
       const docRef = doc(firestore, `${path}/${docId}`);
       await updateDoc(docRef, { ...payload, updatedAt: timestamp });
-      return await this.getOne(path, docId);
+      return await getOneDoc(docId, path, firestore, defaultErrorMessage);
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return error.message;
-      } else return "Unknown Error Caught!";
+        return new ApplicationError().handleFirebaseError(error, "error");
+      } else
+        return new ApplicationError().handleDefaultError(
+          "Unknown",
+          defaultErrorMessage,
+          "error"
+        );
     }
   }
 
-  async deleteOne(path: string, docId: string) {
+  async deleteOne(
+    docId: string,
+    path: string,
+    firestore: Firestore,
+    defaultErrorMessage: string
+  ) {
     try {
       deleteDoc(doc(firestore, `${path}/${docId}`));
       return {
@@ -108,8 +160,13 @@ export default class FirebaseRepository<T> {
       };
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return error.message;
-      } else return "Unknown Error Caught!";
+        return new ApplicationError().handleFirebaseError(error, "error");
+      } else
+        return new ApplicationError().handleDefaultError(
+          "Unknown",
+          defaultErrorMessage,
+          "error"
+        );
     }
   }
 }

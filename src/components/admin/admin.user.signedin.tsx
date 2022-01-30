@@ -2,32 +2,56 @@ import { orderBy, Timestamp } from "firebase/firestore";
 import React from "react";
 import { BehaviorSubject } from "rxjs";
 import { v4 as uuidv4 } from "uuid";
+import { TApplicationErrorObject } from "../../lib";
 
-import { useObservable, useStartupData, useSubject } from "../../lib/hooks";
+import {
+  useObservable,
+  useFetchDataOnMount,
+  useSubject,
+} from "../../lib/hooks";
 import {
   useFetchUserIsAdmin,
-  useFirebaseAuth,
-  useFirebaseRepositoryAdmin,
+  FirebaseAuthInterface,
+  FirebaseRepositoryAdminInterface,
 } from "../../Midl/Auth/auth.hooks";
+import { fetchRolesError$, staffFormError$ } from "../../store/error";
 import { edited$, fetchedRoles$, rolesCached$ } from "../../store/role";
+import { user$ } from "../../store/user";
 import { IRolesDoc } from "../../types/role.types";
 import UniversalButton from "../global/universal.button";
 import StaffForm from "./staff.form";
 
 const showStaffForm$ = new BehaviorSubject(false);
+const {
+  userSignOut,
+  authModule,
+  defaultErrorMessage: defaultErrorAuth,
+} = FirebaseAuthInterface();
+
+const {
+  createOneRoleForOneStaff,
+  updateOneRoleForOneStaff,
+  getAllRolesDocs,
+  getOneRolesDoc,
+  collectionPath,
+  firestoreModule,
+  defaultErrorMessage: defaultErrorRepo,
+} = FirebaseRepositoryAdminInterface();
 
 const AdminUserSignedIn: React.FC = () => {
   useSubject(showStaffForm$);
-  const { createOneRoleForOneStaff, collectionPath } =
-    useFirebaseRepositoryAdmin();
   const submitForm = async (email: string, role: string) => {
     const id = uuidv4();
     const res = await createOneRoleForOneStaff(
-      collectionPath,
       { email: email, role: role, id: id, disabled: false },
-      email
+      email,
+      collectionPath,
+      firestoreModule,
+      defaultErrorRepo,
+      getOneRolesDoc
     );
-    if (typeof res !== "string") edited$.next(res);
+    if ("severity" in res) staffFormError$.next(res);
+    else edited$.next(res);
   };
 
   return (
@@ -49,8 +73,6 @@ const AdminUserSignedIn: React.FC = () => {
 };
 
 const BlackBorder: React.FC = () => {
-  const { firebaseUserSignOut } = useFirebaseAuth();
-
   return (
     <div
       style={{
@@ -62,7 +84,7 @@ const BlackBorder: React.FC = () => {
     >
       <button
         style={{ position: "absolute", right: 25, top: 15 }}
-        onClick={() => firebaseUserSignOut()}
+        onClick={async () => await userSignOut(authModule, defaultErrorAuth)}
       >
         Sign Out
       </button>
@@ -73,20 +95,29 @@ const BlackBorder: React.FC = () => {
 const Main: React.FC = () => {
   const rolesCachedState = useObservable(rolesCached$);
   useSubject(edited$);
-  const { getAllRolesDocs, collectionPath } = useFirebaseRepositoryAdmin();
-  const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin();
+  useSubject(fetchRolesError$);
+  const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin(user$.value);
 
   function fetchCallback() {
-    return getAllRolesDocs(collectionPath, [orderBy("createdAt")]);
+    return getAllRolesDocs(
+      [orderBy("createdAt")],
+      collectionPath,
+      firestoreModule,
+      defaultErrorRepo
+    );
   }
 
-  function stateUpdateCallback(param: Array<IRolesDoc>) {
-    fetchedRoles$.next(param);
+  function stateUpdateCallback(
+    param: Array<IRolesDoc> | TApplicationErrorObject
+  ) {
+    if ("severity" in param) fetchRolesError$.next(param);
+    else fetchedRoles$.next(param);
   }
-  const { loading, error } = useStartupData<Array<IRolesDoc>>(
-    fetchCallback,
-    stateUpdateCallback
-  );
+
+  const { loading } = useFetchDataOnMount<
+    Array<IRolesDoc>,
+    TApplicationErrorObject
+  >(fetchCallback, stateUpdateCallback);
 
   return (
     <div
@@ -116,7 +147,9 @@ const Main: React.FC = () => {
       </div>
       <div style={{ margin: 20, background: "white" }}>
         {loading && <h1>Loading</h1>}
-        {error.length > 0 && <span style={{ color: "red" }}>{error}</span>}
+        {fetchRolesError$.value !== null && !isAdmin && (
+          <span style={{ color: "red" }}>{fetchRolesError$.value.message}</span>
+        )}
         {rolesCachedState !== undefined && isAdmin && !loadingIsAdmin
           ? rolesCachedState.map((s) => (
               <StaffList
@@ -144,8 +177,6 @@ const StaffList: React.FC<{
   disabled: boolean;
 }> = (props) => {
   const [editFormShow, setEditFormShow] = React.useState(false);
-  const { updateOneRoleForOneStaff, collectionPath } =
-    useFirebaseRepositoryAdmin();
 
   return (
     <React.Fragment>
@@ -157,11 +188,16 @@ const StaffList: React.FC<{
           closeForm={() => setEditFormShow(false)}
           submitForm={async (email: string, role: string) => {
             const res = await updateOneRoleForOneStaff(
-              collectionPath,
               { email: email, role: role },
-              email
+              email,
+              collectionPath,
+              firestoreModule,
+              defaultErrorRepo,
+              getOneRolesDoc
             );
-            if (typeof res !== "string") edited$.next(res);
+            console.log(res);
+            if ("severity" in res) staffFormError$.next(res);
+            else edited$.next(res);
           }}
           buttonValue="Edit"
         />

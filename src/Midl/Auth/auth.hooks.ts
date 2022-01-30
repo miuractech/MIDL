@@ -1,76 +1,65 @@
-import { onAuthStateChanged } from "firebase/auth";
+import { User } from "firebase/auth";
 import React from "react";
+import { from } from "rxjs";
 
-import { auth } from "../../config/firebase.config";
-import FirebaseAuth from "../../lib/firebase.auth";
-import FirebaseRepository from "../../lib/firebase.repository";
-import { user$ } from "../../store/user";
+import { FirebaseRepository } from "../../lib/firebase.repository";
 import { IRolesDoc } from "../../types/role.types";
+import { DefaultErrorMessage } from "../../constants/default.error.message";
+import { auth, firestore } from "../../config/firebase.config";
+import { FirebaseAuth } from "../../lib/firebase.auth";
+import { ADMIN } from "./settings";
 
-export function useFetchFirebaseGoogleUser() {
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState("");
+const firebaseAuth = new FirebaseAuth(DefaultErrorMessage, auth);
+const firebaseRepository = new FirebaseRepository<IRolesDoc>(
+  "/roles",
+  firestore,
+  DefaultErrorMessage
+);
 
-  React.useEffect(() => {
-    try {
-      setLoading(true);
-      const sub = onAuthStateChanged(auth, (user) => {
-        if (user !== null) {
-          user$.next(user);
-          setLoading(false);
-        } else {
-          setLoading(false);
-          user$.next(null);
-        }
-      });
-      return sub;
-    } catch (error) {
-      setLoading(false);
-      setError("Sorry! Something has gone wrong, maybe.");
-    }
-  }, []);
-
-  return { loading, error };
-}
-
-export function useFetchUserIsAdmin() {
+export function useFetchUserIsAdmin(userParam: User | null) {
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [loadingIsAdmin, setLoadingIsAdmin] = React.useState(true);
 
   React.useEffect(() => {
-    const sub = user$.subscribe(async (user) => {
-      const token = await user?.getIdTokenResult();
-      if (token !== undefined && token.claims["role"] === "admin") {
-        setIsAdmin(true);
+    if (userParam !== null) {
+      const observable$ = from(userParam?.getIdTokenResult());
+      const sub = observable$.subscribe(async (token) => {
+        if (token !== undefined && token.claims["role"] === ADMIN) {
+          setIsAdmin(true);
+        }
         setLoadingIsAdmin(false);
-      } else {
-        setLoadingIsAdmin(false);
-      }
-    });
-    return () => sub.unsubscribe();
-  }, []);
+      });
+      return () => sub.unsubscribe();
+    }
+  }, [userParam]);
 
   return { isAdmin, loadingIsAdmin };
 }
 
-export function useFirebaseAuth() {
-  const firebaseAuth = new FirebaseAuth();
-  const firebaseGoogleSignIn = firebaseAuth.firebaseGoogleSignIn;
-  const firebaseUserSignOut = firebaseAuth.firebaseUserSignOut;
+export function FirebaseAuthInterface() {
+  const authModule = firebaseAuth.getAuth();
+  const defaultErrorMessage = firebaseAuth.getDefaultErrorMessage();
+  const googleSignIn = firebaseAuth.firebaseGoogleSignIn;
+  const userSignOut = firebaseAuth.firebaseUserSignOut;
 
-  return { firebaseGoogleSignIn, firebaseUserSignOut };
+  return { authModule, defaultErrorMessage, googleSignIn, userSignOut };
 }
 
-export function useFirebaseRepositoryAdmin() {
-  const firebaseRepository = new FirebaseRepository<IRolesDoc>("/roles");
+export function FirebaseRepositoryAdminInterface() {
   const collectionPath = firebaseRepository.getPath();
+  const firestoreModule = firebaseRepository.getFirestore();
+  const defaultErrorMessage = firebaseRepository.getDefaultErrorMessage();
   const getAllRolesDocs = firebaseRepository.getAll;
+  const getOneRolesDoc = firebaseRepository.getOne;
   const createOneRoleForOneStaff = firebaseRepository.createOne;
   const updateOneRoleForOneStaff = firebaseRepository.updatedOne;
   return {
     getAllRolesDocs,
     createOneRoleForOneStaff,
     updateOneRoleForOneStaff,
+    getOneRolesDoc,
     collectionPath,
+    firestoreModule,
+    defaultErrorMessage,
   };
 }
