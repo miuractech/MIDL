@@ -4,10 +4,9 @@ import { from } from "rxjs";
 
 import { FirebaseRepository } from "../../lib/firebase.repository";
 import { IRolesDoc } from "../../types/role.types";
-import { DefaultErrorMessage } from "../../constants/default.error.message";
+import { DefaultErrorMessage, ADMIN } from "./settings";
 import { auth, firestore } from "../../config/firebase.config";
 import { FirebaseAuth } from "../../lib/firebase.auth";
-import { ADMIN } from "./settings";
 
 const firebaseAuth = new FirebaseAuth(DefaultErrorMessage, auth);
 const firebaseRepository = new FirebaseRepository<IRolesDoc>(
