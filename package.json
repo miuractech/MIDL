@@ -23,7 +23,6 @@
     "react-scripts": "5.0.0",
     "rxf": "file:src/rxf",
     "rxjs": "^7.5.2",
-    "typescript": "^4.5.4",
     "uuid": "^8.3.2",
     "web-vitals": "^2.1.3",
     "yup": "^0.32.11"
@@ -55,6 +54,7 @@
   "devDependencies": {
     "@types/lodash": "^4.14.178",
     "@types/react-router-dom": "^5.3.2",
-    "@types/uuid": "^8.3.4"
+    "@types/uuid": "^8.3.4",
+    "typescript": "^4.5.5"
   }
 }
