@@ -18,7 +18,8 @@
   },
   "include": ["src"],
   "typedocOptions": {
-    "entryPoints": ["./src/index.tsx"],
-    "out": "docs"
+    "entryPoints": ["./src/typedoc.ts"],
+    "out": "docs",
+    "sort": ["source-order"]
   }
 }

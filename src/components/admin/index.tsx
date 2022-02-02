@@ -1,10 +1,31 @@
+import { User } from "firebase/auth";
 import React from "react";
 
-import { useFetchFirebaseGoogleUser } from "../../Midl/Auth/auth.hooks";
+import { auth } from "../../config/firebase.config";
+import { DefaultErrorMessage } from "../../constants/default.error.message";
+import { useFetchFirebaseUser } from "../../lib/hooks";
+import { user$ } from "../../store/user";
 import AuthState from "./auth.state";
 
+/**
+ *
+ * Entry Point to the Admin Route
+ *
+ * @calls [[useFetchFirebaseUser]]
+ *
+ * @returns Conditionally Renders the UI for the Admin Route Depending on if the User is Signed in or Not.
+ */
 const Admin: React.FC = () => {
-  const { error, loading } = useFetchFirebaseGoogleUser();
+  function stateUpdateCallback(user: User | null) {
+    user$.next(user);
+  }
+
+  const { error, loading } = useFetchFirebaseUser(
+    DefaultErrorMessage,
+    stateUpdateCallback,
+    auth
+  );
+
   return (
     <React.Fragment>
       <AuthState loading={loading} />
