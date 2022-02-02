@@ -15,21 +15,23 @@ export function useFetchFirebaseGoogleUser() {
     try {
       setLoading(true);
       const sub = onAuthStateChanged(auth, (user) => {
+        //change:skimmed code to use one setLoading
         if (user !== null) {
           user$.next(user);
-          setLoading(false);
         } else {
-          setLoading(false);
           user$.next(null);
         }
+        setLoading(false);
       });
+      //question: why return sub?
       return sub;
     } catch (error) {
       setLoading(false);
       setError("Sorry! Something has gone wrong, maybe.");
     }
   }, []);
-
+  //Feedback @somnath: return user even if the user is set in the redux store since the name of this hooks contains the word "fetch". or we have to change the name
+  
   return { loading, error };
 }
 
@@ -40,18 +42,20 @@ export function useFetchUserIsAdmin() {
   React.useEffect(() => {
     const sub = user$.subscribe(async (user) => {
       const token = await user?.getIdTokenResult();
+       //change:skimmed code to use one setLoading
       if (token !== undefined && token.claims["role"] === "admin") {
         setIsAdmin(true);
-        setLoadingIsAdmin(false);
-      } else {
-        setLoadingIsAdmin(false);
       }
+      setLoadingIsAdmin(false);
     });
     return () => sub.unsubscribe();
   }, []);
 
   return { isAdmin, loadingIsAdmin };
 }
+
+
+
 
 export function useFirebaseAuth() {
   const firebaseAuth = new FirebaseAuth();
@@ -69,8 +73,11 @@ export function useFirebaseRepositoryAdmin() {
   const updateOneRoleForOneStaff = firebaseRepository.updatedOne;
   return {
     getAllRolesDocs,
+    //change? @somnath : createOneStaff
     createOneRoleForOneStaff,
+    //change? @somnath : updateOneStaff
     updateOneRoleForOneStaff,
+    //change? @somnath : adminCollectionPath or rolescollectionpath depending on what is the motive here 
     collectionPath,
   };
 }
