@@ -3,14 +3,11 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import UniversalButton from "../global/universal.button";
-import { useSubject } from "../../lib/hooks";
-import { fetchRolesError$, staffFormError$ } from "../../store/error";
-import { useFetchUserIsAdmin } from "../../Midl/Auth/auth.hooks";
-import { user$ } from "../../store/user";
+import { roleOptions } from "../../types/role.types";
 
 interface IForm {
   email: string;
-  role: "manager" | "staff" | "printing" | "shipping";
+  role: roleOptions;
 }
 
 const validationSchema = yup.object({
@@ -26,9 +23,10 @@ const StaffForm: React.FC<{
   placeHolderEmail?: string;
   placeHolderRole?: string;
   closeForm: () => void;
-  submitForm: (email: string, role: string) => void;
+  submitForm: (email: string, role: roleOptions) => void;
   buttonValue: string;
   headerValue: string;
+  serverError: string;
 }> = (props) => {
   const {
     register,
@@ -41,9 +39,6 @@ const StaffForm: React.FC<{
   function submit(data: IForm) {
     props.submitForm(data.email, data.role);
   }
-
-  useSubject(staffFormError$);
-  const { isAdmin } = useFetchUserIsAdmin(user$.value);
 
   return (
     <div
@@ -81,6 +76,7 @@ const StaffForm: React.FC<{
               defaultValue={
                 props.placeHolderEmail ? props.placeHolderEmail : "Email"
               }
+              readOnly={props.placeHolderEmail !== undefined}
               {...register("email")}
             />
             <span style={{ color: "red" }}>{errors.email?.message}</span>
@@ -111,8 +107,8 @@ const StaffForm: React.FC<{
             </UniversalButton>
           </div>
         </form>
-        {fetchRolesError$.value !== null && !isAdmin && (
-          <span style={{ color: "red" }}>{fetchRolesError$.value.message}</span>
+        {props.serverError.length > 0 && (
+          <span style={{ color: "red" }}>{props.serverError}</span>
         )}
       </div>
     </div>

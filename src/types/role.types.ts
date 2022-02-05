@@ -1,10 +1,9 @@
-import { Timestamp } from "firebase/firestore";
+import { TFirestoreDefault } from "./firestore.default.types";
 
-export interface IRolesDoc {
-  id: string;
+export type roleOptions = "manager" | "staff" | "printing" | "shipping";
+
+export interface TStaffRole extends TFirestoreDefault {
   email: string;
-  role: string;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  role: roleOptions;
   disabled: boolean;
 }

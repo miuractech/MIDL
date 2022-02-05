@@ -10,7 +10,7 @@ export function useSubject<T>(subject$: BehaviorSubject<T>) {
     return () => {
       subjectSub.unsubscribe();
     };
-  }, []);
+  }, [subject$]);
 
   return state;
 }
@@ -22,7 +22,7 @@ export function useObservable<T>(observable$: Observable<T>) {
     return () => {
       sub.unsubscribe();
     };
-  }, []);
+  }, [observable$]);
 
   return state;
 }
@@ -35,8 +35,11 @@ export function useFetchDataOnMount<T, E>(
 
   React.useEffect(() => {
     const res = from(fetchCallback());
-    const sub = res.subscribe((val) => stateUpdateCallBackOrCatchError(val));
-    setLoading(false);
+    const sub = res.subscribe((val) => {
+      stateUpdateCallBackOrCatchError(val);
+      setLoading(false);
+    });
+
     return () => sub.unsubscribe();
   }, []);
 
@@ -45,7 +48,11 @@ export function useFetchDataOnMount<T, E>(
 
 export function useFetchFirebaseUser(
   defaultErrorMessage: string,
-  stateUpdateCallBack: (userParam: User | null) => void,
+  stateUpdateCallBack: (
+    userParam: User | null,
+    loadingParam: boolean,
+    errorParam: string
+  ) => void,
   auth: Auth
 ) {
   const [loading, setLoading] = React.useState(true);
@@ -57,14 +64,15 @@ export function useFetchFirebaseUser(
       const sub = onAuthStateChanged(auth, (user) => {
         if (user !== null) {
           setFirebaseUser(user);
-          stateUpdateCallBack(user);
+          stateUpdateCallBack(user, false, "");
         } else {
-          stateUpdateCallBack(null);
+          stateUpdateCallBack(null, false, "");
         }
         setLoading(false);
       });
       return sub;
     } catch (error) {
+      stateUpdateCallBack(null, false, defaultErrorMessage);
       setLoading(false);
       setError(defaultErrorMessage);
     }

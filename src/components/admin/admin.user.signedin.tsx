@@ -1,58 +1,45 @@
-import { orderBy, Timestamp } from "firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { BehaviorSubject } from "rxjs";
 import { v4 as uuidv4 } from "uuid";
 import { TApplicationErrorObject } from "../../lib";
 
+import { useFetchDataOnMount, useSubject } from "../../lib/hooks";
+import { useFetchUserIsAdmin } from "../../Midl/admin/admin.hooks";
 import {
-  useObservable,
-  useFetchDataOnMount,
-  useSubject,
-} from "../../lib/hooks";
+  AdminAuthInterface,
+  AdminFirestoreInterface,
+} from "../../Midl/admin/admin.interface";
+import { RootState } from "../../store";
+import { adminUserState$ } from "../../store/admin.user";
 import {
-  useFetchUserIsAdmin,
-  FirebaseAuthInterface,
-  FirebaseRepositoryAdminInterface,
-} from "../../Midl/Auth/auth.hooks";
-import { fetchRolesError$, staffFormError$ } from "../../store/error";
-import { edited$, fetchedRoles$, rolesCached$ } from "../../store/role";
-import { user$ } from "../../store/user";
-import { IRolesDoc } from "../../types/role.types";
+  setAddedRole,
+  setEditedRole,
+  setRoles,
+  setStaffRolesAddError,
+  setStaffRolesEditError,
+  setStaffRolesFetchError,
+} from "../../store/staff-role";
+import { roleOptions, TStaffRole } from "../../types/role.types";
+
 import UniversalButton from "../global/universal.button";
 import StaffForm from "./staff.form";
 
 const showStaffForm$ = new BehaviorSubject(false);
+const { userSignOut } = AdminAuthInterface();
 const {
-  userSignOut,
-  authModule,
-  defaultErrorMessage: defaultErrorAuth,
-} = FirebaseAuthInterface();
-
-const {
-  createOneRoleForOneStaff,
-  updateOneRoleForOneStaff,
-  getAllRolesDocs,
-  getOneRolesDoc,
-  collectionPath,
-  firestoreModule,
-  defaultErrorMessage: defaultErrorRepo,
-} = FirebaseRepositoryAdminInterface();
+  getAllStaffAndRoles,
+  editStaffRole,
+  addStaffRole,
+  enableStaff,
+  disableStaff,
+} = AdminFirestoreInterface();
 
 const AdminUserSignedIn: React.FC = () => {
   useSubject(showStaffForm$);
-  const submitForm = async (email: string, role: string) => {
-    const id = uuidv4();
-    const res = await createOneRoleForOneStaff(
-      { email: email, role: role, id: id, disabled: false },
-      email,
-      collectionPath,
-      firestoreModule,
-      defaultErrorRepo,
-      getOneRolesDoc
-    );
-    if ("severity" in res) staffFormError$.next(res);
-    else edited$.next(res);
-  };
+  const staffRoles = useSelector((state: RootState) => state.staffRoles);
+  const dispatch = useDispatch();
 
   return (
     <React.Fragment>
@@ -61,8 +48,20 @@ const AdminUserSignedIn: React.FC = () => {
           buttonValue="Add New Account"
           headerValue="Add New Account"
           closeForm={() => showStaffForm$.next(false)}
-          submitForm={async (email: string, role: string) =>
-            await submitForm(email, role)
+          submitForm={async (email: string, role: roleOptions) => {
+            const res = await addStaffRole({
+              email: email,
+              role: role,
+              id: uuidv4(),
+            });
+            if ("severity" in res) dispatch(setStaffRolesAddError(res));
+            else {
+              dispatch(setAddedRole(res));
+              dispatch(setStaffRolesAddError(null));
+            }
+          }}
+          serverError={
+            staffRoles.addError !== null ? staffRoles.addError.message : ""
           }
         />
       ) : null}
@@ -84,7 +83,7 @@ const BlackBorder: React.FC = () => {
     >
       <button
         style={{ position: "absolute", right: 25, top: 15 }}
-        onClick={async () => await userSignOut(authModule, defaultErrorAuth)}
+        onClick={async () => await userSignOut()}
       >
         Sign Out
       </button>
@@ -93,31 +92,24 @@ const BlackBorder: React.FC = () => {
 };
 
 const Main: React.FC = () => {
-  const rolesCachedState = useObservable(rolesCached$);
-  useSubject(edited$);
-  useSubject(fetchRolesError$);
-  const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin(user$.value);
-
-  function fetchCallback() {
-    return getAllRolesDocs(
-      [orderBy("createdAt")],
-      collectionPath,
-      firestoreModule,
-      defaultErrorRepo
-    );
-  }
-
-  function stateUpdateCallback(
-    param: Array<IRolesDoc> | TApplicationErrorObject
+  const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin(
+    adminUserState$.value.user
+  );
+  const staffRolesState = useSelector((state: RootState) => state.staffRoles);
+  const dispatch = useDispatch();
+  function stateUpdateCallbackOrCatchError(
+    param: Array<TStaffRole> | TApplicationErrorObject
   ) {
-    if ("severity" in param) fetchRolesError$.next(param);
-    else fetchedRoles$.next(param);
+    if ("severity" in param) dispatch(setStaffRolesFetchError(param));
+    else {
+      dispatch(setRoles(param));
+      dispatch(setStaffRolesFetchError(null));
+    }
   }
-
   const { loading } = useFetchDataOnMount<
-    Array<IRolesDoc>,
+    Array<TStaffRole>,
     TApplicationErrorObject
-  >(fetchCallback, stateUpdateCallback);
+  >(getAllStaffAndRoles, stateUpdateCallbackOrCatchError);
 
   return (
     <div
@@ -137,7 +129,7 @@ const Main: React.FC = () => {
         }}
       >
         <h3>Staff Account and Roles</h3>
-        {isAdmin && !loadingIsAdmin ? (
+        {isAdmin === "isAdmin" && !loadingIsAdmin ? (
           <div>
             <UniversalButton handleClick={() => showStaffForm$.next(true)}>
               Add New Staff
@@ -147,22 +139,22 @@ const Main: React.FC = () => {
       </div>
       <div style={{ margin: 20, background: "white" }}>
         {loading && <h1>Loading</h1>}
-        {fetchRolesError$.value !== null && !isAdmin && (
-          <span style={{ color: "red" }}>{fetchRolesError$.value.message}</span>
+        {staffRolesState.fetchError !== null && (
+          <span style={{ color: "red" }}>
+            {staffRolesState.fetchError.message}
+          </span>
         )}
-        {rolesCachedState !== undefined && isAdmin && !loadingIsAdmin
-          ? rolesCachedState.map((s) => (
-              <StaffList
-                key={s.email}
-                email={s.email}
-                role={s.role}
-                id={s.id}
-                createdAt={s.createdAt}
-                updatedAt={s.updatedAt}
-                disabled={s.disabled}
-              />
-            ))
-          : null}
+        {staffRolesState.staffRoles.map((s) => (
+          <StaffList
+            key={s.email}
+            email={s.email}
+            role={s.role}
+            id={s.id}
+            createdAt={s.createdAt}
+            updatedAt={s.updatedAt}
+            disabled={s.disabled}
+          />
+        ))}
       </div>
     </div>
   );
@@ -176,7 +168,9 @@ const StaffList: React.FC<{
   id: string;
   disabled: boolean;
 }> = (props) => {
+  const dispatch = useDispatch();
   const [editFormShow, setEditFormShow] = React.useState(false);
+  const staffRolesState = useSelector((state: RootState) => state.staffRoles);
 
   return (
     <React.Fragment>
@@ -186,20 +180,20 @@ const StaffList: React.FC<{
           placeHolderEmail={props.email}
           placeHolderRole={props.role}
           closeForm={() => setEditFormShow(false)}
-          submitForm={async (email: string, role: string) => {
-            const res = await updateOneRoleForOneStaff(
-              { email: email, role: role },
-              email,
-              collectionPath,
-              firestoreModule,
-              defaultErrorRepo,
-              getOneRolesDoc
-            );
-            console.log(res);
-            if ("severity" in res) staffFormError$.next(res);
-            else edited$.next(res);
+          submitForm={async (email: string, role: roleOptions) => {
+            const res = await editStaffRole(role, email);
+            if ("severity" in res) dispatch(setStaffRolesEditError(res));
+            else {
+              dispatch(setEditedRole(res));
+              dispatch(setStaffRolesEditError(null));
+            }
           }}
           buttonValue="Edit"
+          serverError={
+            staffRolesState.editError !== null
+              ? staffRolesState.editError.message
+              : ""
+          }
         />
       ) : null}
       <div
@@ -220,7 +214,20 @@ const StaffList: React.FC<{
           }}
         >
           <button onClick={() => setEditFormShow(true)}>Edit</button>
-          <button>Disable</button>
+          <button
+            onClick={async () => {
+              const res = props.disabled
+                ? await enableStaff(props.id)
+                : await disableStaff(props.id);
+              if ("severity" in res) dispatch(setStaffRolesEditError(res));
+              else {
+                dispatch(setEditedRole(res));
+                dispatch(setStaffRolesEditError(null));
+              }
+            }}
+          >
+            {props.disabled ? "Enable" : "Disable"}
+          </button>
         </div>
       </div>
     </React.Fragment>

@@ -1,7 +1,14 @@
-export * as Admin from "./components/admin";
-export * as ApplicationRouter from "./components/router";
-export * as App from "./App";
-export * as lib from "./lib";
-export * as MidlAdminInterfaces from "./Midl/Auth/auth.hooks";
-export * as MidlAdminSettings from "./Midl/Auth/settings";
-export * as MidlTypes from "./types/role.types";
+// lib
+export * as Lib from "./lib";
+
+// types
+export * as ApplicationTypes from "./types";
+
+// admin-auth
+export * as AdminAuth from "./Midl/admin";
+
+// meta-product-family
+export * as MetaProductFamily from "./Midl/meta products/family";
+
+// midl-settings
+export * as MidlSettings from "./Midl/settings";

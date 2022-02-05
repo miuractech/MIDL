@@ -14,7 +14,6 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { TApplicationErrorObject } from "./types/application.error.type";
 
 import { ApplicationError } from "./application.error";
 
@@ -29,19 +28,10 @@ export class FirebaseRepository<T> {
     this._defaultErrorMessage = defaultErrorMessage;
   }
 
-  getPath = () => this._path;
-  getFirestore = () => this._firestore;
-  getDefaultErrorMessage = () => this._defaultErrorMessage;
-
-  async getAll(
-    queryConstraints: Array<QueryConstraint>,
-    path: string,
-    firestore: Firestore,
-    defaultErrorMessage: string
-  ) {
+  async getAll(queryConstraints: Array<QueryConstraint>) {
     try {
       const firebaseQueryBuilder = query(
-        collection(firestore, path),
+        collection(this._firestore, this._path),
         ...queryConstraints
       ) as Query<T>;
       const docs = await getDocs(firebaseQueryBuilder);
@@ -52,22 +42,17 @@ export class FirebaseRepository<T> {
       } else
         return new ApplicationError().handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async getOne(
-    docId: string,
-    path: string,
-    firestore: Firestore,
-    defaultErrorMessage: string
-  ) {
+  async getOne(docId: string) {
     try {
       const firebaseDocRef = doc(
-        firestore,
-        path,
+        this._firestore,
+        this._path,
         docId
       ) as DocumentReference<T>;
       const document = await getDoc(firebaseDocRef);
@@ -79,82 +64,53 @@ export class FirebaseRepository<T> {
       } else
         return new ApplicationError().handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async createOne(
-    payload: T,
-    docId: string,
-    path: string,
-    firestore: Firestore,
-    defaultErrorMessage: string,
-    getOneDoc: (
-      docId: string,
-      path: string,
-      firestore: Firestore,
-      defaultErrorMessage: string
-    ) => Promise<T | TApplicationErrorObject>
-  ) {
+  async createOne(payload: T, docId: string) {
     try {
-      await setDoc(doc(firestore, `${path}/${docId}`), {
+      await setDoc(doc(this._firestore, `${this._path}/${docId}`), {
         ...payload,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      return await getOneDoc(docId, path, firestore, defaultErrorMessage);
+      return this.getOne(docId);
     } catch (error) {
       if (error instanceof FirebaseError) {
         return new ApplicationError().handleFirebaseError(error, "error");
       } else
         return new ApplicationError().handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async updatedOne(
-    payload: Partial<T>,
-    docId: string,
-    path: string,
-    firestore: Firestore,
-    defaultErrorMessage: string,
-    getOneDoc: (
-      docId: string,
-      path: string,
-      firestore: Firestore,
-      defaultErrorMessage: string
-    ) => Promise<T | TApplicationErrorObject>
-  ) {
+  async updateOne(payload: Partial<T>, docId: string) {
     const timestamp = serverTimestamp();
     try {
-      const docRef = doc(firestore, `${path}/${docId}`);
+      const docRef = doc(this._firestore, `${this._path}/${docId}`);
       await updateDoc(docRef, { ...payload, updatedAt: timestamp });
-      return await getOneDoc(docId, path, firestore, defaultErrorMessage);
+      return this.getOne(docId);
     } catch (error) {
       if (error instanceof FirebaseError) {
         return new ApplicationError().handleFirebaseError(error, "error");
       } else
         return new ApplicationError().handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async deleteOne(
-    docId: string,
-    path: string,
-    firestore: Firestore,
-    defaultErrorMessage: string
-  ) {
+  async deleteOne(docId: string) {
     try {
-      deleteDoc(doc(firestore, `${path}/${docId}`));
+      deleteDoc(doc(this._firestore, `${this._path}/${docId}`));
       return {
         message: "Document Successfully Deleted",
       };
@@ -164,7 +120,7 @@ export class FirebaseRepository<T> {
       } else
         return new ApplicationError().handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }

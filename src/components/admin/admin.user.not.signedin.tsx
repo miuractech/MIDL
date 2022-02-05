@@ -1,25 +1,13 @@
 import React from "react";
 
 import { useSubject } from "../../lib/hooks";
-import { FirebaseAuthInterface } from "../../Midl/Auth/auth.hooks";
-import { authError$ } from "../../store/error";
-import { user$ } from "../../store/user";
+import { AdminAuthInterface } from "../../Midl/admin/admin.interface";
+import { adminUserState$ } from "../../store/admin.user";
 
-const { googleSignIn, authModule, defaultErrorMessage } =
-  FirebaseAuthInterface();
+const { googleSignIn } = AdminAuthInterface();
 
 const AdminUserNotSignedIn: React.FC = () => {
-  useSubject(authError$);
-
-  async function handleClickGoogleAuth() {
-    authError$.next(null);
-    const res = await googleSignIn(authModule, defaultErrorMessage);
-    if ("severity" in res) {
-      authError$.next(res);
-    } else {
-      user$.next(res);
-    }
-  }
+  useSubject(adminUserState$);
 
   return (
     <div style={{ display: "flex" }}>
@@ -53,7 +41,7 @@ const AdminUserNotSignedIn: React.FC = () => {
           <img src="/miurac-logo.png" alt="logo" />
         </div>
         <div style={{ display: "flex", justifyContent: "center" }}>
-          <button style={{ border: "none" }} onClick={handleClickGoogleAuth}>
+          <button style={{ border: "none" }} onClick={() => googleSignIn()}>
             <div
               style={{
                 display: "flex",
@@ -69,9 +57,10 @@ const AdminUserNotSignedIn: React.FC = () => {
             </div>
           </button>
         </div>
-        {authError$.value !== null && (
-          <span style={{ color: "red" }}>{authError$.value.message}</span>
+        {adminUserState$.value.error.length > 0 && (
+          <span style={{ color: "red" }}>{adminUserState$.value.error}</span>
         )}
+        <span>{adminUserState$.value.signOutMessage}</span>
       </div>
     </div>
   );

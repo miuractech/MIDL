@@ -1,28 +1,42 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import Admin from "./admin";
+import { Provider } from "react-redux";
 
-/**
- *
- * @returns Element
- */
+import { auth } from "../config/firebase.config";
+import { useFetchFirebaseUser } from "../lib";
+import { DefaultErrorMessage } from "../Midl/settings";
+import { adminUserState$ } from "../store/admin.user";
+import Admin from "./admin";
+import Family from "./family";
+import { store } from "../store";
+
 const NotFound: React.FC = () => {
   return <h1>Not Found</h1>;
 };
 
-/**
- *
- * @RouteOne -- [[Admin]]
- * @RouteTwo (Default Not Found) -- [[NotFound]]
- * @Returns Renders All the Specified Routes
- */
 const ApplicationRouter: React.FC = () => {
+  useFetchFirebaseUser(
+    DefaultErrorMessage,
+    (userParam, loadingParam, errorParam) => {
+      adminUserState$.next({
+        user: userParam,
+        userLoading: loadingParam,
+        error: errorParam,
+        signOutMessage: "",
+      });
+    },
+    auth
+  );
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/*" element={<NotFound />} />
-      </Routes>
-    </Router>
+    <Provider store={store}>
+      <Router>
+        <Routes>
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/meta-products/family" element={<Family />} />
+          <Route path="/*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </Provider>
   );
 };
 

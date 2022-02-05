@@ -15,27 +15,30 @@ import { ApplicationError } from "./application.error";
 export class FirebaseAuth {
   private _defaultErrorMessage: string;
   private _auth: Auth;
+  private _applicationError: ApplicationError;
 
-  constructor(defaultErrorMessage: string, auth: Auth) {
+  constructor(
+    defaultErrorMessage: string,
+    auth: Auth,
+    applicationError: ApplicationError
+  ) {
     this._defaultErrorMessage = defaultErrorMessage;
     this._auth = auth;
+    this._applicationError = applicationError;
   }
 
-  getAuth = () => this._auth;
-  getDefaultErrorMessage = () => this._defaultErrorMessage;
-
-  async firebaseGoogleSignIn(auth: Auth, defaultErrorMessage: string) {
+  async firebaseGoogleSignIn() {
     const provider = new GoogleAuthProvider();
     try {
-      const firebaseUser = await signInWithPopup(auth, provider);
+      const firebaseUser = await signInWithPopup(this._auth, provider);
       return firebaseUser.user;
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return new ApplicationError().handleFirebaseError(error, "error");
+        return this._applicationError.handleFirebaseError(error, "error");
       } else
-        return new ApplicationError().handleDefaultError(
+        return this._applicationError.handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
@@ -43,68 +46,62 @@ export class FirebaseAuth {
 
   async firebaseCreateUserWithEmailAndPassword(
     email: string,
-    password: string,
-    auth: Auth,
-    defaultErrorMessage: string
+    password: string
   ) {
     try {
-      return (await createUserWithEmailAndPassword(auth, email, password)).user;
+      return (await createUserWithEmailAndPassword(this._auth, email, password))
+        .user;
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return new ApplicationError().handleFirebaseError(error, "error");
+        return this._applicationError.handleFirebaseError(error, "error");
       } else
-        return new ApplicationError().handleDefaultError(
+        return this._applicationError.handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async firebaseEmailPasswordSignin(
-    email: string,
-    password: string,
-    auth: Auth,
-    defaultErrorMessage: string
-  ) {
+  async firebaseEmailPasswordSignin(email: string, password: string) {
     try {
       const firebaseUser = await signInWithEmailAndPassword(
-        auth,
+        this._auth,
         email,
         password
       );
       return firebaseUser.user;
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return new ApplicationError().handleFirebaseError(error, "error");
+        return this._applicationError.handleFirebaseError(error, "error");
       } else
-        return new ApplicationError().handleDefaultError(
+        return this._applicationError.handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async firebaseUserSignOut(auth: Auth, defaultErrorMessage: string) {
+  async firebaseUserSignOut() {
     try {
-      await signOut(auth);
+      await signOut(this._auth);
       return {
         message: "User has successfully signed out!",
       };
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return new ApplicationError().handleFirebaseError(error, "error");
+        return this._applicationError.handleFirebaseError(error, "error");
       } else
-        return new ApplicationError().handleDefaultError(
+        return this._applicationError.handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
   }
 
-  async firebaseSendEmailVerification(user: User, defaultErrorMessage: string) {
+  async firebaseSendEmailVerification(user: User) {
     try {
       await sendEmailVerification(user);
       return {
@@ -112,11 +109,11 @@ export class FirebaseAuth {
       };
     } catch (error) {
       if (error instanceof FirebaseError) {
-        return new ApplicationError().handleFirebaseError(error, "error");
+        return this._applicationError.handleFirebaseError(error, "error");
       } else
-        return new ApplicationError().handleDefaultError(
+        return this._applicationError.handleDefaultError(
           "Unknown",
-          defaultErrorMessage,
+          this._defaultErrorMessage,
           "error"
         );
     }
