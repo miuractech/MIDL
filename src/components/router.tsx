@@ -8,10 +8,16 @@ import { adminUserState$ } from "../store/admin.user";
 import Admin from "./admin";
 import Family from "./family";
 import { store } from "../store";
+import { InventoryGeoLocationInterface } from "../Midl/inventory/inventory.interface";
 
 const NotFound: React.FC = () => {
   return <h1>Not Found</h1>;
 };
+InventoryGeoLocationInterface()
+  .getCitiesByCountryAndState("India", "Assam")
+  .then((res) => console.log(res));
+
+InventoryGeoLocationInterface().getStatesByCountry("India").then(console.log);
 
 const ApplicationRouter: React.FC = () => {
   useFetchFirebaseUser(
