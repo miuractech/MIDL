@@ -4,6 +4,28 @@ import { from } from "rxjs";
 
 import { ADMIN } from "../settings";
 
+/**
+ * This function lets you check if the current is Admin. 
+ * 
+ * @example
+ * ```
+ * import { useFetchUserIsAdmin } from "../Midl/admin";
+ * 
+ * const App = () =>{
+ *  const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin();
+ * 
+ *  if(loadingIsAdmin) return <>Loading...</>
+ *  else{ 
+ *    return(
+ *      <>
+ *        {isAdmin? 'admin' : 'you\'re not admin'}
+ *      </>
+ *    )
+ *  }
+ * }
+ * ```
+ * 
+ */
 export function useFetchUserIsAdmin(userParam: User | null) {
   const [isAdmin, setIsAdmin] = React.useState<
     "notSignedIn" | "isAdmin" | "notAdmin"

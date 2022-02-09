@@ -8,6 +8,7 @@ import { adminUserState$ } from "../../store/admin.user";
 import { roleOptions, TStaffRole } from "../../types/role.types";
 import { DefaultErrorMessage } from "../settings";
 
+
 const applicationError = new ApplicationError();
 
 const firebaseAuth = new FirebaseAuth(
@@ -21,6 +22,28 @@ const firebaseRepository = new FirebaseRepository<TStaffRole>(
   DefaultErrorMessage
 );
 
+/**
+ * googleSignIn function will let you sign in / sign up a user via google popup.
+ * the auth is provided by GOOGLE. 
+ * 
+ * @example
+ * ```
+ * import { AdminAuthInterface } from "../Midl/admin";
+ * 
+ * const App = () =>{
+ *  const { googleSignIn } = AdminAuthInterface();
+ * 
+ *    return(
+ *      <button
+ *       onClick = {()=>googleSignIn()}
+ *      >
+ *        Click to Sign In
+ *      </button>
+ *    )
+ * }
+ * ```
+ * 
+ */
 async function googleSignIn() {
   const res = await firebaseAuth.firebaseGoogleSignIn();
   if ("severity" in res)
