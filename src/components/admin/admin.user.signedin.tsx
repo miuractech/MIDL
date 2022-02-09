@@ -63,6 +63,7 @@ const AdminUserSignedIn: React.FC = () => {
           serverError={
             staffRoles.addError !== null ? staffRoles.addError.message : ""
           }
+          mounted={showStaffForm$.value}
         />
       ) : null}
       <BlackBorder />
@@ -146,7 +147,7 @@ const Main: React.FC = () => {
         )}
         {staffRolesState.staffRoles.map((s) => (
           <StaffList
-            key={s.email}
+            key={s.id}
             email={s.email}
             role={s.role}
             id={s.id}
@@ -181,7 +182,7 @@ const StaffList: React.FC<{
           placeHolderRole={props.role}
           closeForm={() => setEditFormShow(false)}
           submitForm={async (email: string, role: roleOptions) => {
-            const res = await editStaffRole(role, email);
+            const res = await editStaffRole(email, role, props.id);
             if ("severity" in res) dispatch(setStaffRolesEditError(res));
             else {
               dispatch(setEditedRole(res));
@@ -194,6 +195,7 @@ const StaffList: React.FC<{
               ? staffRolesState.editError.message
               : ""
           }
+          mounted={editFormShow}
         />
       ) : null}
       <div
@@ -217,8 +219,8 @@ const StaffList: React.FC<{
           <button
             onClick={async () => {
               const res = props.disabled
-                ? await enableStaff(props.id)
-                : await disableStaff(props.id);
+                ? await enableStaff(props.email, props.id)
+                : await disableStaff(props.email, props.id);
               if ("severity" in res) dispatch(setStaffRolesEditError(res));
               else {
                 dispatch(setEditedRole(res));

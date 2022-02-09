@@ -3,10 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 
 import { useSubject } from "../../lib";
 import { useFetchUserIsAdmin } from "../../Midl/admin/admin.hooks";
-import { MetaProductFamilyInterface } from "../../Midl/meta products/family.interface";
+import { MetaProductFamilyDBInterface } from "../../Midl/meta-products/family.interface";
 import { adminUserState$ } from "../../store/admin.user";
 
-const { addNewFamily, reorderFamily } = MetaProductFamilyInterface();
+const { addNewFamily, reorderFamily } = MetaProductFamilyDBInterface();
 
 const Family: React.FC = () => {
   useSubject(adminUserState$);

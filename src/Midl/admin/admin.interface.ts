@@ -1,4 +1,4 @@
-import { orderBy } from "firebase/firestore";
+import { orderBy, where } from "firebase/firestore";
 
 import { auth, firestore } from "../../config/firebase.config";
 import { ApplicationError } from "../../lib";
@@ -66,22 +66,42 @@ async function addStaffRole(payload: {
   role: roleOptions;
   id: string;
 }) {
-  return await firebaseRepository.createOne(
-    { ...payload, disabled: false },
-    payload.id
+  const dup = await firebaseRepository.getAll([
+    where("email", "==", payload.email),
+  ]);
+  if ("severity" in dup) return dup;
+  else if (dup.length > 0) {
+    return new ApplicationError().handleDefaultError(
+      "Duplicate Field",
+      "The Email is Already Taken",
+      "info"
+    );
+  } else
+    return await firebaseRepository.createOne(
+      { ...payload, disabled: false },
+      payload.id
+    );
+}
+
+async function editStaffRole(email: string, role: roleOptions, docId: string) {
+  return await firebaseRepository.updateOne(
+    { role: role, email: email },
+    docId
   );
 }
 
-async function editStaffRole(role: roleOptions, docId: string) {
-  return await firebaseRepository.updateOne({ role: role }, docId);
+async function disableStaff(email: string, docId: string) {
+  return await firebaseRepository.updateOne(
+    { disabled: true, email: email },
+    docId
+  );
 }
 
-async function disableStaff(docId: string) {
-  return await firebaseRepository.updateOne({ disabled: true }, docId);
-}
-
-async function enableStaff(docId: string) {
-  return await firebaseRepository.updateOne({ disabled: false }, docId);
+async function enableStaff(email: string, docId: string) {
+  return await firebaseRepository.updateOne(
+    { disabled: false, email: email },
+    docId
+  );
 }
 
 export interface TAdminAuthInterface {

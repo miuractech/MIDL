@@ -6,14 +6,14 @@ export class ApplicationError {
   handleDefaultError(
     name: string,
     message: string,
-    severity: "error" | "fatal"
+    severity: "error" | "fatal" | "info"
   ): TApplicationErrorObject {
     return this.mapToErrorObject("Unknown/Default", name, message, severity);
   }
 
   handleFirebaseError(
     error: FirebaseError,
-    severity: "error" | "fatal"
+    severity: "error" | "fatal" | "info"
   ): TApplicationErrorObject {
     return this.mapToErrorObject(
       error.code,

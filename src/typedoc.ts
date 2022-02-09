@@ -8,7 +8,13 @@ export * as ApplicationTypes from "./types";
 export * as AdminAuth from "./Midl/admin";
 
 // meta-product-family
-export * as MetaProductFamily from "./Midl/meta products/family";
+export * as MetaProductFamily from "./Midl/meta-products/family";
+
+// meta-product-category
+export * as MetaProductCategory from "./Midl/meta-products/category";
+
+// meta-product-subcategory
+export * as MetaProductSubCategory from "./Midl/meta-products/sub-category";
 
 // inventory
 export * as Inventory from "./Midl/inventory";

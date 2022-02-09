@@ -4,6 +4,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 
 import UniversalButton from "../global/universal.button";
 import { roleOptions } from "../../types/role.types";
+import React from "react";
+import { from } from "rxjs";
 
 interface IForm {
   email: string;
@@ -23,10 +25,11 @@ const StaffForm: React.FC<{
   placeHolderEmail?: string;
   placeHolderRole?: string;
   closeForm: () => void;
-  submitForm: (email: string, role: roleOptions) => void;
+  submitForm: (email: string, role: roleOptions) => Promise<void>;
   buttonValue: string;
   headerValue: string;
   serverError: string;
+  mounted: boolean;
 }> = (props) => {
   const {
     register,
@@ -35,9 +38,14 @@ const StaffForm: React.FC<{
   } = useForm<IForm>({
     resolver: yupResolver(validationSchema),
   });
+  const [loading, setLoading] = React.useState(false);
 
   function submit(data: IForm) {
-    props.submitForm(data.email, data.role);
+    setLoading(true);
+    const sub = from(props.submitForm(data.email, data.role)).subscribe(() => {
+      if (props.mounted) setLoading(false);
+    });
+    if (!props.mounted) sub.unsubscribe();
   }
 
   return (
@@ -99,9 +107,16 @@ const StaffForm: React.FC<{
               marginTop: 10,
             }}
           >
-            <UniversalButton handleClick={handleSubmit(submit)}>
-              {props.buttonValue}
-            </UniversalButton>
+            {loading === false ? (
+              <UniversalButton handleClick={handleSubmit(submit)}>
+                {props.buttonValue}
+              </UniversalButton>
+            ) : (
+              <span style={{ color: "green" }}>
+                Sending Request... Be Patient Please!
+              </span>
+            )}
+
             <UniversalButton handleClick={() => props.closeForm()}>
               Close
             </UniversalButton>
