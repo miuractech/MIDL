@@ -1,46 +1,21 @@
-# Getting Started with Create React App
+# ADMIN - MIDL
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This Repo contains modules and hooks that can be used to make an admin dashboard easily!
+This project uses Typescript but you can use Javascript if needed(or if you feel lazy). 
 
-## Available Scripts
+All of this code belongs to Miurac.com. use of this code without permission is banned!
 
-In the project directory, you can run:
+### `How to use`
 
-### `npm start`
+Copy the module you want to use from Midl folder. along with the lib folder.
+import the hooks and use it
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
+import { useHook } from '../Midl/module';
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+const MyFunction = () => {
+    const { hookFunctionality } = useHook();
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+}
+```
+It's as simple as that.

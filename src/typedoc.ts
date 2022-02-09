@@ -5,7 +5,7 @@ export * as Lib from "./lib";
 export * as ApplicationTypes from "./types";
 
 // admin-auth
-export * as AdminAuth from "./Midl/admin";
+export * as StaffRoles from "./Midl/admin";
 
 // meta-product-family
 export * as MetaProductFamily from "./Midl/meta-products/family";
