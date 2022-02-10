@@ -1,8 +1,8 @@
 import { useDispatch } from "react-redux";
-import { StaffRoleInterface } from "..";
 
+import { StaffRoleInterface } from "../interfaces/staff-role.interface";
 import { TApplicationErrorObject } from "../../../lib";
-import { TStaffRole } from "../../../types";
+import { TStaffRole } from "../types";
 import {
   setEditedRole,
   setStaffRolesEditError,

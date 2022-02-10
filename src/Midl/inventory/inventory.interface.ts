@@ -6,7 +6,7 @@ import {
   countriesApiUrl,
   DefaultErrorMessage,
   statesApiUrl,
-} from "../meta-products/settings";
+} from "./settings";
 
 async function getCountries() {
   try {

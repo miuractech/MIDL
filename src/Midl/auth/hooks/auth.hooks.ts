@@ -14,6 +14,7 @@ export type TUserIsAdmin = "isAdmin" | "isNotAdmin" | "isNotSignedIn";
  *
  * @example
  * ```
+ * import React from "react";
  * import { useSelector } from "react-redux";
  *
  * import { RootState } from "../../../store";
@@ -21,7 +22,7 @@ export type TUserIsAdmin = "isAdmin" | "isNotAdmin" | "isNotSignedIn";
  *
  * const { useFetchUserIsAdmin } = AdminAuthHooks();
  *
- * const IsAdmin: React.FC = () => {
+ * const IsAdmin: React.FC<{ RenderProp: React.FC }> = (props) => {
  *   const { user } = useSelector((state: RootState) => state.adminUser);
  *   const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin(user);
  *
@@ -31,7 +32,7 @@ export type TUserIsAdmin = "isAdmin" | "isNotAdmin" | "isNotSignedIn";
  *       <h1>{"You Are Not Signed in. Please Sign in, and Then Try Again"}</h1>
  *     );
  *   else if (isAdmin === "isNotAdmin") return <h1>{"You Are Not an Admin."}</h1>;
- *   else return <h1>{`Welcome ${user?.displayName}`}</h1>;
+ *   else return <props.RenderProp />;
  * };
  *
  * export default IsAdmin;

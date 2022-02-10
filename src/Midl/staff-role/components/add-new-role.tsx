@@ -7,11 +7,11 @@ import { from } from "rxjs";
 
 import { roleOptionsList } from "../settings";
 import { useDispatch, useSelector } from "react-redux";
-import { StaffRoleInterface } from "..";
-import { roleOptions } from "../../../types";
+import { StaffRoleInterface } from "../interfaces/staff-role.interface";
+import { roleOptions } from "../types";
 import { setAddedRole, setStaffRolesAddError } from "../store/staff-role.slice";
 import { RootState } from "../../../store";
-import { AdminAuthHooks } from "../../auth";
+import { AdminAuthHooks } from "../../auth/hooks/auth.hooks";
 
 const { addStaffRole } = StaffRoleInterface();
 const { useFetchUserIsAdmin } = AdminAuthHooks();
@@ -69,9 +69,12 @@ const AddNewRole: React.FC<{ mounted: boolean }> = ({ mounted }) => {
   function submit(data: { email: string; role: string }) {
     setSendingRequest(true);
 
-    // from Function exported by rxjs Library Converts the Returned Promise into an Observable,
-    // Which Helps us With Some Clean Up In Case the User Immediately Closes the Form Upon Submitting it
-    // Which is Also Why the Mounted Prop is Passed to Check if The Form Component is Mounted or Not.
+    // from Function exported by rxjs Library Converts the Returned Promise
+    // into an Observable,
+    // Which Helps us With Some Clean Up,
+    // In Case the User Immediately Closes the Form Upon Submitting it.
+    // Which is Also Why the Mounted Prop is Passed to Check
+    // if The Form Component is Mounted or Not.
     // If Not Mounted, We Unsubscribe from the Event.
     const obs$ = from(
       addStaffRole({

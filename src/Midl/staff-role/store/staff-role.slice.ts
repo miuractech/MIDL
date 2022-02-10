@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { TApplicationErrorObject } from "../../../lib";
-import { TStaffRole } from "../../../types/role.types";
+import { TStaffRole } from "../types";
 
 interface TState {
   staffRole: Array<TStaffRole>;

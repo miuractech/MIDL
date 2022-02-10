@@ -6,7 +6,7 @@ import {
   FirebaseRepository,
   TApplicationErrorObject,
 } from "../../../lib";
-import { roleOptions, TStaffRole } from "../../../types";
+import { roleOptions, TStaffRole } from "../types";
 import { DefaultErrorMessage } from "../settings";
 
 const firebaseRepository = new FirebaseRepository<TStaffRole>(
@@ -22,49 +22,55 @@ const firebaseRepository = new FirebaseRepository<TStaffRole>(
  *
  * ```
  * import React from "react";
- *import { useDispatch, useSelector } from "react-redux";
+ * import { useDispatch, useSelector } from "react-redux";
  *
- *import { StaffRoleInterface } from "..";
- *import { TApplicationErrorObject, useFetchDataOnMount } from "../../../lib";
- *import { RootState } from "../../../store";
- *import { TStaffRole } from "../../../types";
- *import {
- *  setStaffRoles,
- *  setStaffRolesFetchError,
- *} from "../store/staff-role.slice";
+ * import { StaffRoleInterface } from "../interfaces/staff-role.interface";
+ * import { TApplicationErrorObject, useFetchDataOnMount } from "../../../lib";
+ * import { RootState } from "../../../store";
+ * import { TStaffRole } from "../types";
+ * import {
+ *   setStaffRoles,
+ *   setStaffRolesFetchError,
+ * } from "../store/staff-role.slice";
  *
- *const { getAllStaffAndRoles } = StaffRoleInterface();
+ * const { getAllStaffAndRoles } = StaffRoleInterface();
  *
- *const GetAllStaffRoles: React.FC = () => {
- *  const dispatch = useDispatch();
- *  const { staffRole } = useSelector((state: RootState) => state.staffRole);
- *  function staffRoleUpdateCallback(
- *    res: Array<TStaffRole> | TApplicationErrorObject
- *  ) {
- *    if ("severity" in res) dispatch(setStaffRolesFetchError(res));
- *    else {
- *      dispatch(setStaffRoles(res));
- *      dispatch(setStaffRolesFetchError(null));
- *    }
- *  }
+ * const GetAllStaffRoles: React.FC = () => {
+ *   const dispatch = useDispatch();
+ *   const { staffRole, fetchError } = useSelector(
+ *     (state: RootState) => state.staffRole
+ *   );
+ *   function staffRoleUpdateCallback(
+ *     res: Array<TStaffRole> | TApplicationErrorObject
+ *   ) {
+ *     if ("severity" in res) dispatch(setStaffRolesFetchError(res));
+ *     else {
+ *       dispatch(setStaffRoles(res));
+ *       dispatch(setStaffRolesFetchError(null));
+ *     }
+ *   }
  *
- *  // This Custom Hook or Function fetches the Data with the First Param Passed in and Updates the StaffRole state in Redux Store
- *  // Via the Second Param.
- *  useFetchDataOnMount<Array<TStaffRole>, TApplicationErrorObject>(
- *    getAllStaffAndRoles,
- *    staffRoleUpdateCallback
- *  );
+ *   // This Custom Hook or Function fetches the Data with the First Param Passed in and Updates the StaffRole state in Redux Store
+ *   // Via the Second Param.
+ *   useFetchDataOnMount<Array<TStaffRole>, TApplicationErrorObject>(
+ *     getAllStaffAndRoles,
+ *     staffRoleUpdateCallback
+ *   );
  *
- *  return (
+ *   return (
  *     <React.Fragment>
  *       {staffRole.map((role) => (
- *         <h3>{role.email}</h3>
+ *         <h3 key={role.id}>{role.email}</h3>
  *       ))}
+ *       {fetchError !== null && (
+ *         <span style={{ color: "red" }}>{fetchError?.message}</span>
+ *       )}
  *     </React.Fragment>
  *   );
  * };
  *
  * export default GetAllStaffRoles;
+ *
  * ```
  */
 async function getAllStaffAndRoles() {
@@ -87,11 +93,11 @@ async function getAllStaffAndRoles() {
  *
  * import { roleOptionsList } from "../settings";
  * import { useDispatch, useSelector } from "react-redux";
- * import { StaffRoleInterface } from "..";
- * import { roleOptions } from "../../../types";
+ * import { StaffRoleInterface } from "../interfaces/staff-role.interface";
+ * import { roleOptions } from "../types";
  * import { setAddedRole, setStaffRolesAddError } from "../store/staff-role.slice";
  * import { RootState } from "../../../store";
- * import { AdminAuthHooks } from "../../auth";
+ * import { AdminAuthHooks } from "../../auth/hooks/auth.hooks";
  *
  * const { addStaffRole } = StaffRoleInterface();
  * const { useFetchUserIsAdmin } = AdminAuthHooks();
@@ -149,9 +155,12 @@ async function getAllStaffAndRoles() {
  *   function submit(data: { email: string; role: string }) {
  *     setSendingRequest(true);
  *
- *     // from Function exported by rxjs Library Converts the Returned Promise into an Observable,
- *     // Which Helps us With Some Clean Up In Case the User Immediately Closes the Form Upon Submitting it
- *     // Which is Also Why the Mounted Prop is Passed to Check if The Form Component is Mounted or Not.
+ *     // from Function exported by rxjs Library Converts the Returned Promise
+ *     // into an Observable,
+ *     // Which Helps us With Some Clean Up,
+ *     // In Case the User Immediately Closes the Form Upon Submitting it.
+ *     // Which is Also Why the Mounted Prop is Passed to Check
+ *     // if The Form Component is Mounted or Not.
  *     // If Not Mounted, We Unsubscribe from the Event.
  *     const obs$ = from(
  *       addStaffRole({
@@ -195,6 +204,7 @@ async function getAllStaffAndRoles() {
  *
  * export default FormWrapper;
  *
+ *
  * ```
  *
  */
@@ -235,10 +245,10 @@ async function editStaffRole(role: roleOptions, docId: string) {
  * @example
  * ```
  * import { useDispatch } from "react-redux";
- * import { StaffRoleInterface } from "..";
  *
+ * import { StaffRoleInterface } from "../interfaces/staff-role.interface";
  * import { TApplicationErrorObject } from "../../../lib";
- * import { TStaffRole } from "../../../types";
+ * import { TStaffRole } from "../types";
  * import {
  *   setEditedRole,
  *   setStaffRolesEditError,
@@ -268,6 +278,8 @@ async function editStaffRole(role: roleOptions, docId: string) {
  * };
  *
  * export default EnableDisableStaff;
+ *
+ *
  * ```
  *
  */

@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 
-import { AdminAuthInterface } from "..";
+import { AdminAuthInterface } from "../interfaces/auth.interfaces";
 import { TApplicationErrorObject } from "../../../lib";
 import { RootState } from "../../../store";
 import { setAdminUserState } from "../store/admin.user.slice";

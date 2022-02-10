@@ -1,3 +1,3 @@
-export * from "./hooks/auth.hooks";
-export * from "./interfaces/auth.interfaces";
-export * from "./settings";
+export * as AuthHooks from "./hooks/auth.hooks";
+export * as AuthInterface from "./interfaces/auth.interfaces";
+export * as AuthSettings from "./settings";
