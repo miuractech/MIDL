@@ -2,13 +2,14 @@ import {
   orderBy,
   QueryConstraint,
   runTransaction,
+  serverTimestamp,
   where,
 } from "firebase/firestore";
 
 import { firestore } from "../../config/firebase.config";
 import { ApplicationError, FirebaseRepository, reorder } from "../../lib";
 import { TMetaProductFamily } from "../../types/meta-product.types";
-import { DefaultErrorMessage, MetaProductFamilyLimit } from "../settings";
+import { DefaultErrorMessage, MetaProductFamilyLimit } from "./settings";
 
 const metaProductFamilyRepo = new FirebaseRepository<TMetaProductFamily>(
   "/meta/products/family",
@@ -90,11 +91,17 @@ async function reorderFamily(
       const reordered = reorder(docs, nextIndex, currentIndex);
       if ("severity" in reordered) return reordered;
       else {
+        const batch = metaProductFamilyRepo.createBatch();
         reordered.forEach((r) => {
           r.updatedBy = userName;
-          metaProductFamilyRepo.updateOne(r, r.id);
+          metaProductFamilyRepo.batchCommitUpdate(
+            batch,
+            { updatedBy: userName, index: r.index },
+            r.id
+          );
         });
-        return reordered;
+        batch.commit();
+        return await metaProductFamilyRepo.getAll([orderBy("index")]);
       }
     }
   });

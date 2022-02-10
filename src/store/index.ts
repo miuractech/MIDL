@@ -1,12 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import staffRoleReducers from "./staff-role";
 import metaProductFamilyReducers from "./meta-product-family";
 import metaProductCategoryReducers from "./meta-product.category";
+import adminUserReducers from "../Midl/auth/store/admin.user.slice";
+import staffRoleReducers from "../Midl/staff-role/store/staff-role.slice";
 
 export const store = configureStore({
   reducer: {
-    staffRoles: staffRoleReducers,
+    adminUser: adminUserReducers,
+    staffRole: staffRoleReducers,
     metaProductFamily: metaProductFamilyReducers,
     metaProductCategory: metaProductCategoryReducers,
   },

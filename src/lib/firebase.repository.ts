@@ -13,6 +13,8 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  WriteBatch,
+  writeBatch,
 } from "firebase/firestore";
 
 import { ApplicationError } from "./application.error";
@@ -124,5 +126,14 @@ export class FirebaseRepository<T> {
           "error"
         );
     }
+  }
+
+  createBatch() {
+    return writeBatch(this._firestore);
+  }
+
+  batchCommitUpdate(batch: WriteBatch, payload: Partial<T>, docId: string) {
+    const docRef = doc(this._firestore, `${this._path}/${docId}`);
+    batch.update(docRef, { ...payload, updatedAt: serverTimestamp() });
   }
 }

@@ -7,7 +7,7 @@ import {
 import { firestore } from "../../config/firebase.config";
 import { ApplicationError, FirebaseRepository, reorder } from "../../lib";
 import { TMetaProductSubCategory } from "../../types";
-import { DefaultErrorMessage, MetaProductSubCategoryLimit } from "../settings";
+import { DefaultErrorMessage, MetaProductSubCategoryLimit } from "./settings";
 
 const metaProductSubCategoryRepo =
   new FirebaseRepository<TMetaProductSubCategory>(
@@ -98,11 +98,17 @@ async function reorderSubCategory(
       const reordered = reorder(docs, nextIndex, currentIndex);
       if ("severity" in reordered) return reordered;
       else {
+        const batch = metaProductSubCategoryRepo.createBatch();
         reordered.forEach((r) => {
           r.updatedBy = userName;
-          metaProductSubCategoryRepo.updateOne(r, r.id);
+          metaProductSubCategoryRepo.batchCommitUpdate(
+            batch,
+            { updatedBy: userName, index: r.index },
+            r.id
+          );
         });
-        return reordered;
+        await batch.commit();
+        return await metaProductSubCategoryRepo.getAll([orderBy("index")]);
       }
     }
   });

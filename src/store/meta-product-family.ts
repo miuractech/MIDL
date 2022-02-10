@@ -16,7 +16,7 @@ const state: TState = {
   addError: null,
 };
 
-export const metaProductFamilySlice = createSlice({
+const metaProductFamilySlice = createSlice({
   name: "metaProductFamily",
   initialState: state,
   reducers: {

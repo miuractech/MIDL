@@ -5,7 +5,10 @@ export * as Lib from "./lib";
 export * as ApplicationTypes from "./types";
 
 // admin-auth
-export * as StaffRoles from "./Midl/admin";
+export * as Auth from "./Midl/auth";
+
+// staff-role
+export * as StaffRole from "./Midl/staff-role";
 
 // meta-product-family
 export * as MetaProductFamily from "./Midl/meta-products/family";
@@ -20,4 +23,4 @@ export * as MetaProductSubCategory from "./Midl/meta-products/sub-category";
 export * as Inventory from "./Midl/inventory";
 
 // midl-settings
-export * as MidlSettings from "./Midl/settings";
+export * as MidlSettings from "./Midl/meta-products/settings";

@@ -1,19 +1,22 @@
 import { FirebaseError } from "firebase/app";
 
-import { TApplicationErrorObject } from "./types/application.error.type";
+import {
+  TApplicationErrorObject,
+  TSeverity,
+} from "./types/application.error.type";
 
 export class ApplicationError {
   handleDefaultError(
     name: string,
     message: string,
-    severity: "error" | "fatal" | "info"
+    severity: TSeverity
   ): TApplicationErrorObject {
     return this.mapToErrorObject("Unknown/Default", name, message, severity);
   }
 
   handleFirebaseError(
     error: FirebaseError,
-    severity: "error" | "fatal" | "info"
+    severity: TSeverity
   ): TApplicationErrorObject {
     return this.mapToErrorObject(
       error.code,
@@ -32,11 +35,20 @@ export class ApplicationError {
     );
   }
 
+  handleCustomError(
+    code: string,
+    name: string,
+    message: string,
+    severity: TSeverity
+  ) {
+    return this.mapToErrorObject(code, name, message, severity);
+  }
+
   private mapToErrorObject(
     code: string,
     name: string,
     message: string,
-    severity: "error" | "fatal" | "info"
+    severity: TSeverity
   ): TApplicationErrorObject {
     return {
       code: code,

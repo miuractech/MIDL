@@ -2,12 +2,13 @@ import {
   orderBy,
   QueryConstraint,
   runTransaction,
+  serverTimestamp,
   where,
 } from "firebase/firestore";
 import { firestore } from "../../config/firebase.config";
 import { ApplicationError, FirebaseRepository, reorder } from "../../lib";
 import { TMetaProductCategory } from "../../types";
-import { DefaultErrorMessage, MetaProductCategoryLimit } from "../settings";
+import { DefaultErrorMessage, MetaProductCategoryLimit } from "./settings";
 
 const metaProductCategoryRepo = new FirebaseRepository<TMetaProductCategory>(
   "/meta/products/category",
@@ -89,11 +90,17 @@ async function reorderCategory(
       const reordered = reorder(docs, nextIndex, currentIndex);
       if ("severity" in reordered) return reordered;
       else {
+        const batch = metaProductCategoryRepo.createBatch();
         reordered.forEach((r) => {
           r.updatedBy = userName;
-          metaProductCategoryRepo.updateOne(r, r.id);
+          metaProductCategoryRepo.batchCommitUpdate(
+            batch,
+            { updatedBy: userName, index: r.index },
+            r.id
+          );
         });
-        return reordered;
+        await batch.commit();
+        return await metaProductCategoryRepo.getAll([orderBy("index")]);
       }
     }
   });
