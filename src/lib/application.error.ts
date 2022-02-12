@@ -5,6 +5,32 @@ import {
   TSeverity,
 } from "./types/application.error.type";
 
+/**
+ *
+ * This Class is Used for Composing Different Types of Errors that Suit the Developers' Needs.
+ * More Methods are Possibly Coming and Some Modifications
+ *
+ * @example
+ *
+ * ```
+ *
+ * async function YourFetchFunction() {
+ *   try {
+ *     const res = await axios.get<Array<TRes>>(apiUrl);
+ *     return res.data;
+ *   } catch (error) {
+ *     return new ApplicationError().handleCustomError(
+ *       "Unknown",
+ *       "Fetch Error",
+ *       "Some Unknown Error Occurred Fetching the Data",
+ *       "error"
+ *     );
+ *   }
+ * }
+ *
+ * ```
+ *
+ */
 export class ApplicationError {
   handleDefaultError(
     name: string,

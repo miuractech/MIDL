@@ -132,7 +132,7 @@ function fetchFamilyById(docId: string) {
  *   );
  * };
  *
- * const FormWrapper: React.FC<{ user: User | null }> = (props) => {
+ * const FormWrapper: React.FC<{ user: User }> = (props) => {
  *   const { metaProductFamilies, addError } = useSelector(
  *     (state: RootState) => state.metaProductFamily
  *   );
@@ -154,7 +154,7 @@ function fetchFamilyById(docId: string) {
  *   );
  * };
  *
- * const AddForm: React.FC<{ user: User | null; mounted: boolean }> = (props) => {
+ * const AddForm: React.FC<{ user: User; mounted: boolean }> = (props) => {
  *   const {
  *     register,
  *     handleSubmit,
@@ -167,7 +167,7 @@ function fetchFamilyById(docId: string) {
  *
  *   function submit(data: { name: string }) {
  *     setSendingRequest(true);
- *     if (props.user !== null && props.user.displayName !== null) {
+ *     if (props.user.displayName !== null) {
  *       const obs$ = from(
  *         addNewFamily(
  *           { name: data.name, createdBy: props.user?.displayName },
@@ -269,6 +269,110 @@ async function fetchFamilyByName(name: string) {
   }
 }
 
+/**
+ *
+ * Changes the Index of the Selected Document, Taking in the CurrentIndex of the Doc and The Next and
+ * Reorders All the Families by the Index Field
+ *
+ * @example
+ *
+ * ```
+ * import * as yup from "yup";
+ *
+ * import { User } from "firebase/auth";
+ * import IsAdmin from "../../../auth/components/is-admin";
+ * import { useForm } from "react-hook-form";
+ * import { yupResolver } from "@hookform/resolvers/yup";
+ * import { TMetaProductFamily } from "../../types";
+ * import { MetaProductFamilyDBInterface } from "../../interfaces";
+ * import { from } from "rxjs";
+ * import { useDispatch } from "react-redux";
+ * import {
+ *   setMetaProductFamilies,
+ *   setMetaProductFamilyEditError,
+ * } from "../../store/meta-product.family.slice";
+ * import React from "react";
+ *
+ * const validationSchema = yup.object({
+ *   currentIndex: yup.number().required("This Index Field is Required"),
+ *   nextIndex: yup.number().required("This Index Field is Required"),
+ * });
+ *
+ * const { reorderFamily } = MetaProductFamilyDBInterface();
+ *
+ * const ReorderFamily: React.FC<{ family: TMetaProductFamily }> = ({
+ *   family,
+ * }) => {
+ *   const [showForm, setShowForm] = React.useState(true);
+ *
+ *   return (
+ *     <div>
+ *       <button onClick={() => setShowForm((val) => !val)}>
+ *         {showForm ? "Hide" : "Show"}
+ *       </button>
+ *       {showForm ? (
+ *         <IsAdmin
+ *           LoadingRenderProp={() => <h1>Loading</h1>}
+ *           NotSignedInRenderProp={() => <h1>Not Signed In</h1>}
+ *           NotAdminRenderProp={() => <h1>Not Admin</h1>}
+ *           AdminRenderProp={(props) => (
+ *             <FormWrapper user={props.user} family={family} mounted={showForm} />
+ *           )}
+ *         />
+ *       ) : null}
+ *     </div>
+ *   );
+ * };
+ *
+ * const FormWrapper: React.FC<{
+ *   user: User;
+ *   family: TMetaProductFamily;
+ *   mounted: boolean;
+ * }> = ({ user, family, mounted }) => {
+ *   const {
+ *     register,
+ *     handleSubmit,
+ *     formState: { errors },
+ *   } = useForm<{ currentIndex: number; nextIndex: number }>({
+ *     resolver: yupResolver(validationSchema),
+ *   });
+ *
+ *   const dispatch = useDispatch();
+ *
+ *   function submit(data: { currentIndex: number; nextIndex: number }) {
+ *     if (user.displayName !== null) {
+ *       const obs$ = from(
+ *         reorderFamily(data.nextIndex, data.currentIndex, user.displayName)
+ *       );
+ *       const sub = obs$.subscribe((val) => {
+ *         if ("severity" in val) dispatch(setMetaProductFamilyEditError(val));
+ *         else {
+ *           dispatch(setMetaProductFamilies(val));
+ *           dispatch(setMetaProductFamilyEditError(null));
+ *         }
+ *       });
+ *       if (!mounted) sub.unsubscribe();
+ *     }
+ *   }
+ *
+ *   return (
+ *     <div>
+ *       <form onSubmit={handleSubmit(submit)}>
+ *         <input {...register("currentIndex")} defaultValue={family.index} />
+ *         <input {...register("nextIndex")} />
+ *         <button onClick={() => handleSubmit(submit)}>Submit</button>
+ *       </form>
+ *     </div>
+ *   );
+ * };
+ *
+ * export default ReorderFamily;
+ *
+ *
+ * ```
+ *
+ *
+ */
 async function reorderFamily(
   nextIndex: number,
   currentIndex: number,

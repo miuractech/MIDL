@@ -21,6 +21,33 @@ export function firebaseUserToApplicationUser(
   };
 }
 
+/**
+ *
+ * Takes an Array of Elements(The Elements Must Have a Field Called Index), the Next, and the Current Index of an Element.
+ * It Then Places the Element at that Next Index and Reorders All the Elements by their New Indexes
+ *
+ * @example
+ *
+ * ```
+ *
+ * const arr: Array<{ index: number; name: string }> = [
+ *   {
+ *     index: 0,
+ *     name: "Sanjeev",
+ *   },
+ *   {
+ *     index: 1,
+ *     name: "Somnath",
+ *   },
+ * ];
+ *
+ * const res = reorder(arr, 0, 1);
+ *
+ * // output = [{index: 0, name: "Somnath"}, {index: 1, name: "Sanjeev"}]
+ *
+ * ```
+ *
+ */
 export function reorder<T extends TDefault>(
   param: Array<T>,
   toPlace: number,

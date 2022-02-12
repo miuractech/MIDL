@@ -18,12 +18,12 @@ const firebaseAuth = new FirebaseAuth(
  * @example
  *
  * ```
- *
  * import { User } from "firebase/auth";
  * import React from "react";
- * import { useDispatch } from "react-redux";
+ * import { useDispatch, useSelector } from "react-redux";
  *
  * import { TApplicationErrorObject } from "../../../lib";
+ * import { RootState } from "../../../store";
  * import { AdminAuthInterface } from "../interfaces/auth.interfaces";
  * import { setAdminUserState } from "../store/admin.user.slice";
  *
@@ -31,6 +31,7 @@ const firebaseAuth = new FirebaseAuth(
  *
  * const GoogleSignIn: React.FC = () => {
  *   const dispatch = useDispatch();
+ *   const { user } = useSelector((state: RootState) => state.adminUser);
  *
  *   function userStateUpdateCallback(res: User | TApplicationErrorObject) {
  *     if ("severity" in res) {
@@ -56,21 +57,23 @@ const firebaseAuth = new FirebaseAuth(
  *
  *   return (
  *     <React.Fragment>
- *       <button
- *         onClick={async () => {
- *           userStateUpdateCallback(await googleSignIn());
- *         }}
- *       >
- *         Sign In With Google
- *       </button>
+ *       {user === null ? (
+ *         <button
+ *           onClick={async () => {
+ *             userStateUpdateCallback(await googleSignIn());
+ *           }}
+ *         >
+ *           Sign In With Google
+ *         </button>
+ *       ) : (
+ *         <h1>You Are Already Signed In.</h1>
+ *       )}
  *     </React.Fragment>
  *   );
  * };
  *
  * export default GoogleSignIn;
  *
- *
- * export default GoogleSignIn;
  *
  * ```
  *
@@ -86,18 +89,22 @@ async function googleSignIn() {
  *
  * @example
  * ```
+ *
  * import { useDispatch, useSelector } from "react-redux";
  *
- *  import { AdminAuthInterface } from "../interfaces/auth.interfaces";
- *  import { TApplicationErrorObject } from "../../../lib";
+ * import { AdminAuthInterface } from "../interfaces/auth.interfaces";
+ * import { TApplicationErrorObject } from "../../../lib";
  * import { RootState } from "../../../store";
- *  import { setAdminUserState } from "../store/admin.user.slice";
+ * import { setAdminUserState } from "../store/admin.user.slice";
+ * import React from "react";
  *
  * const { userSignOut } = AdminAuthInterface();
  *
  * const UserSignOut: React.FC = () => {
  *   const dispatch = useDispatch();
- *   const { user } = useSelector((state: RootState) => state.adminUser);
+ *   const { user, signOutMessage } = useSelector(
+ *     (state: RootState) => state.adminUser
+ *   );
  *
  *   function userStateUpdateCallback(
  *     res: TApplicationErrorObject | { message: string }
@@ -124,13 +131,19 @@ async function googleSignIn() {
  *   }
  *
  *   return (
- *     <button
- *       onClick={async () => {
- *         userStateUpdateCallback(await userSignOut());
- *       }}
- *     >
- *       Sign Out
- *     </button>
+ *     <React.Fragment>
+ *       {user !== null ? (
+ *         <button
+ *           onClick={async () => {
+ *             userStateUpdateCallback(await userSignOut());
+ *           }}
+ *         >
+ *           Sign Out
+ *         </button>
+ *       ) : (
+ *         <h1>{signOutMessage}</h1>
+ *       )}
+ *     </React.Fragment>
  *   );
  * };
  *
@@ -148,6 +161,11 @@ export interface TAdminAuthInterface {
   userSignOut: typeof userSignOut;
 }
 
+/**
+ *
+ * Authentication Interface Meant for Admin Users
+ *
+ */
 export function AdminAuthInterface(): TAdminAuthInterface {
   return {
     googleSignIn: googleSignIn,

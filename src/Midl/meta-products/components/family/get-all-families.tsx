@@ -10,6 +10,7 @@ import {
   setMetaProductFamilyFetchError,
 } from "../../store/meta-product.family.slice";
 import { TMetaProductFamily } from "../../types";
+import ReorderFamily from "./reorder-family";
 
 const { getAllFamilies } = MetaProductFamilyDBInterface();
 
@@ -48,7 +49,12 @@ const AllFamiliesWrapper: React.FC = () => {
   return (
     <React.Fragment>
       {metaProductFamilies.map((m) => (
-        <h1 key={m.id}>{m.name}</h1>
+        <div key={m.id}>
+          <h1>
+            {m.index} {m.name}
+          </h1>
+          <ReorderFamily family={m} />
+        </div>
       ))}
       {fetchError !== null && (
         <span style={{ color: "red" }}>{fetchError.message}</span>

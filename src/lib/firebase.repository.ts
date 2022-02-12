@@ -19,6 +19,9 @@ import {
 
 import { ApplicationError } from "./application.error";
 
+/**
+ * Generic Class Wrapper for All the Firestore Crud Functionalites.
+ */
 export class FirebaseRepository<T> {
   private _path: string;
   private _firestore: Firestore;

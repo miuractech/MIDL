@@ -14,6 +14,8 @@ export type TUserIsAdmin = "isAdmin" | "isNotAdmin" | "isNotSignedIn";
  *
  * @example
  * ```
+ *
+ * import { User } from "firebase/auth";
  * import React from "react";
  * import { useSelector } from "react-redux";
  *
@@ -22,17 +24,20 @@ export type TUserIsAdmin = "isAdmin" | "isNotAdmin" | "isNotSignedIn";
  *
  * const { useFetchUserIsAdmin } = AdminAuthHooks();
  *
- * const IsAdmin: React.FC<{ RenderProp: React.FC }> = (props) => {
+ * const IsAdmin: React.FC<{
+ *   LoadingRenderProp: React.FC;
+ *   NotSignedInRenderProp: React.FC;
+ *   NotAdminRenderProp: React.FC;
+ *   AdminRenderProp: React.FC<{ user: User; displayName: string }>;
+ * }> = (props) => {
  *   const { user } = useSelector((state: RootState) => state.adminUser);
  *   const { isAdmin, loadingIsAdmin } = useFetchUserIsAdmin(user);
  *
- *   if (loadingIsAdmin) return <h1>{"Loading User's Admin State."}</h1>;
- *   else if (isAdmin === "isNotSignedIn")
- *     return (
- *       <h1>{"You Are Not Signed in. Please Sign in, and Then Try Again"}</h1>
- *     );
- *   else if (isAdmin === "isNotAdmin") return <h1>{"You Are Not an Admin."}</h1>;
- *   else return <props.RenderProp />;
+ *   if (loadingIsAdmin) return <props.LoadingRenderProp />;
+ *   else if (isAdmin === "isAdmin" && user !== null && user.displayName !== null)
+ *     return <props.AdminRenderProp user={user} displayName={user.displayName} />;
+ *   else if (isAdmin === "isNotAdmin") return <props.NotAdminRenderProp />;
+ *   else return <props.NotSignedInRenderProp />;
  * };
  *
  * export default IsAdmin;

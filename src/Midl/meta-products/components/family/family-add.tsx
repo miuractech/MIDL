@@ -35,7 +35,7 @@ const AddFamily: React.FC = () => {
   );
 };
 
-const FormWrapper: React.FC<{ user: User | null }> = (props) => {
+const FormWrapper: React.FC<{ user: User }> = (props) => {
   const { metaProductFamilies, addError } = useSelector(
     (state: RootState) => state.metaProductFamily
   );
@@ -57,7 +57,7 @@ const FormWrapper: React.FC<{ user: User | null }> = (props) => {
   );
 };
 
-const AddForm: React.FC<{ user: User | null; mounted: boolean }> = (props) => {
+const AddForm: React.FC<{ user: User; mounted: boolean }> = (props) => {
   const {
     register,
     handleSubmit,
@@ -70,7 +70,7 @@ const AddForm: React.FC<{ user: User | null; mounted: boolean }> = (props) => {
 
   function submit(data: { name: string }) {
     setSendingRequest(true);
-    if (props.user !== null && props.user.displayName !== null) {
+    if (props.user.displayName !== null) {
       const obs$ = from(
         addNewFamily(
           { name: data.name, createdBy: props.user?.displayName },

@@ -92,15 +92,13 @@ async function getAllStaffAndRoles() {
  * import { from } from "rxjs";
  *
  * import { roleOptionsList } from "../settings";
- * import { useDispatch, useSelector } from "react-redux";
+ * import { useDispatch } from "react-redux";
  * import { StaffRoleInterface } from "../interfaces/staff-role.interface";
  * import { roleOptions } from "../types";
  * import { setAddedRole, setStaffRolesAddError } from "../store/staff-role.slice";
- * import { RootState } from "../../../store";
- * import { AdminAuthHooks } from "../../auth/hooks/auth.hooks";
+ * import { User } from "firebase/auth";
  *
  * const { addStaffRole } = StaffRoleInterface();
- * const { useFetchUserIsAdmin } = AdminAuthHooks();
  *
  * const validationSchema = yup.object({
  *   email: yup
@@ -115,26 +113,17 @@ async function getAllStaffAndRoles() {
  *     ),
  * });
  *
- * const FormWrapper: React.FC = () => {
+ * const FormWrapper: React.FC<{ user: User }> = (props) => {
  *   const [showForm, setShowForm] = React.useState(true);
- *   const { user } = useSelector((state: RootState) => state.adminUser);
- *   const { loadingIsAdmin, isAdmin } = useFetchUserIsAdmin(user);
  *
- *   if (loadingIsAdmin) return <h1>{"Loading User's Admin State."}</h1>;
- *   else if (isAdmin === "isNotSignedIn")
- *     return (
- *       <h1>{"You Are Not Signed in. Please Sign in, and Then Try Again"}</h1>
- *     );
- *   else if (isAdmin === "isNotAdmin") return <h1>{"You Are Not an Admin."}</h1>;
- *   else
- *     return (
- *       <div>
- *         <button onClick={() => setShowForm((val) => !val)}>
- *           {showForm ? "Hide" : "Show"}
- *         </button>
- *         {showForm ? <AddNewRole mounted={showForm} /> : null}
- *       </div>
- *     );
+ *   return (
+ *     <div>
+ *       <button onClick={() => setShowForm((val) => !val)}>
+ *         {showForm ? "Hide" : "Show"}
+ *       </button>
+ *       {showForm ? <AddNewRole mounted={showForm} /> : null}
+ *     </div>
+ *   );
  * };
  *
  * const AddNewRole: React.FC<{ mounted: boolean }> = ({ mounted }) => {
@@ -181,8 +170,6 @@ async function getAllStaffAndRoles() {
  *     });
  *     if (!mounted) sub.unsubscribe();
  *   }
- *
- *   console.log(sendingRequest);
  *
  *   return (
  *     <form onSubmit={handleSubmit(submit)}>

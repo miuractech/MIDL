@@ -12,6 +12,11 @@ import {
 
 import { ApplicationError } from "./application.error";
 
+/**
+ *
+ * Class Wrapper for All the Needed Firebase Auth Functionalities
+ *
+ */
 export class FirebaseAuth {
   private _defaultErrorMessage: string;
   private _auth: Auth;
