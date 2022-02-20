@@ -1,7 +1,22 @@
 import { User } from "firebase/auth";
+import { Timestamp } from "firebase/firestore";
+import { ApplicationError } from "./application.error";
 
-import { ApplicationError } from ".";
-import { TApplicationUser } from "./types/application.user";
+/**
+ *
+ * Serialized Firebase User Type if You want to Use Redux With Serialized Objects
+ *
+ */
+ export interface TApplicationUser {
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  emailVerified: boolean;
+  photoURL: string | null;
+  phoneNumber: string | null;
+  providerId: string;
+}
+
 
 export interface TDefault {
   index: number;
@@ -73,3 +88,17 @@ export function reorder<T extends TDefault>(
     );
   }
 }
+
+
+/**
+ *
+ * Default Fields for All Firebase Documents.
+ * All The Application Objects that Represent Firebase Documents in React Must Extend this Type
+ *
+ */
+ export interface TFirestoreDefault {
+  id: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+}
+

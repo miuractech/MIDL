@@ -1,9 +1,22 @@
 import { FirebaseError } from "firebase/app";
+export type TSeverity = "error" | "fatal" | "info";
 
-import {
-  TApplicationErrorObject,
-  TSeverity,
-} from "./types/application.error.type";
+/**
+ *
+ * Default Frontend Application Error Type at for Midl-Related Projects
+ *
+ */
+export interface TApplicationErrorObject {
+  name: string;
+  code: string;
+  message: string;
+  severity: TSeverity;
+}
+
+// import {
+//   TApplicationErrorObject,
+//   TSeverity,
+// } from "./types/application.error.type";
 
 /**
  *

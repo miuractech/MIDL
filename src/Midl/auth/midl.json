@@ -1,0 +1,17 @@
+{
+    "name":"auth",
+    "type":"feature",
+    "projectType":"admin",
+    "midl-dependency":[
+        "/lib/utils.ts",
+        "/lib/firebase.auth.ts",
+        "/lib/application.error.ts"
+    ],
+    "midl-feature-dependency":{
+    },
+    "node-dependency":{
+        "firebase": "^9.6.2",
+        "@reduxjs/toolkit": "^1.7.1"
+    }
+
+}
