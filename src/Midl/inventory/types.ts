@@ -1,4 +1,4 @@
-import { TFirestoreDefault } from "../../lib/types/firestore.default";
+import { TFirestoreDefault } from "rxf";
 
 export interface TLocation extends TFirestoreDefault {
   name: string;

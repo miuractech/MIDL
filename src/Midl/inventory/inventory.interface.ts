@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { ApplicationError } from "../../lib";
+import { ApplicationError } from "rxf";
 import {
   citiesApiUrl,
   countriesApiUrl,
@@ -17,7 +17,8 @@ async function getCountries() {
     }>(countriesApiUrl);
     return res.data.data.map((d) => d.name);
   } catch (error) {
-    return new ApplicationError().handleDefaultError(
+    return new ApplicationError().handleCustomError(
+      "Fetch Error",
       "Countries Fetch",
       DefaultErrorMessage,
       "error"
@@ -40,7 +41,8 @@ async function getStatesByCountry(country: string) {
     });
     return res.data.data.states;
   } catch (error) {
-    return new ApplicationError().handleDefaultError(
+    return new ApplicationError().handleCustomError(
+      "Fetch Error",
       "States Fetch",
       DefaultErrorMessage,
       "error"
@@ -57,7 +59,8 @@ async function getCitiesByCountryAndState(country: string, state: string) {
     }>(citiesApiUrl, { country: country, state: state });
     return res.data.data;
   } catch (error) {
-    return new ApplicationError().handleDefaultError(
+    return new ApplicationError().handleCustomError(
+      "Fetch Error",
       "Cities Fetch",
       DefaultErrorMessage,
       "error"

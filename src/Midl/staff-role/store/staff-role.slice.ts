@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { TApplicationErrorObject } from "../../../lib";
+import { TApplicationErrorObject } from "rxf";
 import { TStaffRole } from "../types";
 
 interface TState {

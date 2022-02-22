@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TApplicationErrorObject } from "../../../lib/types/application.error.type";
+import { TApplicationErrorObject } from "rxf";
 import { TMetaProductFamily } from "../types";
 
 interface TState {

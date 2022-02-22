@@ -1,4 +1,4 @@
-import { TFirestoreDefault } from "../../../lib/types/firestore.default";
+import { TFirestoreDefault } from "rxf";
 
 export type roleOptions = "manager" | "staff" | "printing" | "shipping";
 

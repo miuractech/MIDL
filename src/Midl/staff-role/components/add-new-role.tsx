@@ -3,16 +3,11 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { v4 as uuidv4 } from "uuid";
 import React from "react";
-import { from } from "rxjs";
 
 import { roleOptionsList } from "../settings";
-import { useDispatch } from "react-redux";
-import { StaffRoleInterface } from "../interfaces/staff-role.interface";
+import { useAddStaffRole } from "../hooks";
 import { roleOptions } from "../types";
-import { setAddedRole, setStaffRolesAddError } from "../store/staff-role.slice";
 import { User } from "firebase/auth";
-
-const { addStaffRole } = StaffRoleInterface();
 
 const validationSchema = yup.object({
   email: yup
@@ -41,11 +36,8 @@ const FormWrapper: React.FC<{ user: User }> = (props) => {
 };
 
 const AddNewRole: React.FC<{ mounted: boolean }> = ({ mounted }) => {
-  const [sendingRequest, setSendingRequest] = React.useState(false);
+  const { loadingFlag, addStaffRole } = useAddStaffRole(mounted);
 
-  // useForm Custom Hook Takes Care of All Kinds of Form Validation.
-  // You Just Need to Pass a ValidationSchema Like in This Case One has been Passed in,
-  // Which Prevents Form Submitting Until the Inputs are in Accordance with the Schema.
   const {
     register,
     handleSubmit,
@@ -53,36 +45,13 @@ const AddNewRole: React.FC<{ mounted: boolean }> = ({ mounted }) => {
   } = useForm<{ email: string; role: string }>({
     resolver: yupResolver(validationSchema),
   });
-  const dispatch = useDispatch();
 
   function submit(data: { email: string; role: string }) {
-    setSendingRequest(true);
-
-    // from Function exported by rxjs Library Converts the Returned Promise
-    // into an Observable,
-    // Which Helps us With Some Clean Up,
-    // In Case the User Immediately Closes the Form Upon Submitting it.
-    // Which is Also Why the Mounted Prop is Passed to Check
-    // if The Form Component is Mounted or Not.
-    // If Not Mounted, We Unsubscribe from the Event.
-    const obs$ = from(
-      addStaffRole({
-        email: data.email,
-        role: data.role as roleOptions,
-        id: uuidv4(),
-      })
-    );
-    const sub = obs$.subscribe((val) => {
-      if (mounted) {
-        setSendingRequest(false);
-        if ("severity" in val) dispatch(setStaffRolesAddError(val));
-        else {
-          dispatch(setStaffRolesAddError(null));
-          dispatch(setAddedRole(val));
-        }
-      }
+    addStaffRole({
+      id: uuidv4(),
+      email: data.email,
+      role: data.role as roleOptions,
     });
-    if (!mounted) sub.unsubscribe();
   }
 
   return (
@@ -94,7 +63,7 @@ const AddNewRole: React.FC<{ mounted: boolean }> = ({ mounted }) => {
           <option key={role}>{role}</option>
         ))}
       </select>
-      {!sendingRequest ? (
+      {!loadingFlag ? (
         <button onClick={() => handleSubmit(submit)}>submit</button>
       ) : (
         <span>Sending Request</span>
